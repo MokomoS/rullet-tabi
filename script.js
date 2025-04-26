@@ -197,60 +197,40 @@ document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
   if (rolling) return;
   rolling = true;
 
-  // ランダムな回転量を決める
-  const randomX = (Math.random() * 4 + 6) * Math.PI; // 6π〜10πくらい
-  const randomY = (Math.random() * 4 + 6) * Math.PI; // 6π〜10πくらい
+  // まず最初にランダムな出目（1〜6）を決める
+  const randomFace = Math.ceil(Math.random() * 6);
 
-  const targetRotation = {
-    x: dice.rotation.x + randomX,
-    y: dice.rotation.y + randomY
+  // 出目ごとの最終回転角度（これで出目と画像が必ず一致する）
+  const faceRotations = {
+    1: { x: 0, y: 0 },
+    2: { x: 0, y: Math.PI },
+    3: { x: 0, y: -Math.PI / 2 },
+    4: { x: 0, y: Math.PI / 2 },
+    5: { x: -Math.PI / 2, y: 0 },
+    6: { x: Math.PI / 2, y: 0 }
   };
 
+  // 決めた出目に合わせた回転角
+  const targetRotation = faceRotations[randomFace];
+
   const spinStart = Date.now();
-  const spinDuration = 2000; // 2秒
+  const spinDuration = 2000; // 2秒間ぐるぐる回す
 
   function spin() {
     const elapsed = Date.now() - spinStart;
     if (elapsed < spinDuration) {
-      const t = elapsed / spinDuration;
-      dice.rotation.x = dice.rotation.x * (1 - t) + targetRotation.x * t;
-      dice.rotation.y = dice.rotation.y * (1 - t) + targetRotation.y * t;
+      dice.rotation.x += 0.3;
+      dice.rotation.y += 0.4;
       requestAnimationFrame(spin);
     } else {
       rolling = false;
+
+      // 最後は決めた出目にピタッと合わせる
       dice.rotation.x = targetRotation.x;
       dice.rotation.y = targetRotation.y;
 
-      // 出目を判定する
-      const vector = new THREE.Vector3(0, 0, 1);
-      vector.applyQuaternion(dice.quaternion);
-
-      const absX = Math.abs(vector.x);
-      const absY = Math.abs(vector.y);
-      const absZ = Math.abs(vector.z);
-
-      let faceIndex;
-      if (absX > absY && absX > absZ) {
-        faceIndex = vector.x > 0 ? 5 : 4;
-      } else if (absY > absX && absY > absZ) {
-        faceIndex = vector.y > 0 ? 2 : 3;
-      } else {
-        faceIndex = vector.z > 0 ? 0 : 1;
-      }
-
-      const faceMapping = {
-        0: 1, // front (z+)
-        1: 6, // back (z-)
-        2: 3, // top (y+)
-        3: 4, // bottom (y-)
-        4: 2, // left (x-)
-        5: 5  // right (x+)
-      };
-
-      const rolledNumber = faceMapping[faceIndex];
-
-      // 出目×1万円の予算テキストを表示
-      document.getElementById('budget3dResult').textContent = `次の日の予算は ${rolledNumber * 10000}円だよ！`;
+      // 出目に応じてテキスト表示
+      document.getElementById('budget3dResult').textContent = `次の日の予算は ${randomFace * 10000}円だよ！`;
     }
   }
 
