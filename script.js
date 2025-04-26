@@ -141,7 +141,7 @@ function highlightPrefecture(prefectureName) {
 
 let scene, camera, renderer, dice;
 let rolling = false;
-let currentFace = 1;
+let textures = [];
 
 init3DDice();
 
@@ -155,14 +155,16 @@ function init3DDice() {
   document.getElementById('diceContainer').appendChild(renderer.domElement);
 
   const loader = new THREE.TextureLoader();
-  const materials = [
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-1.png') }),
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-2.png') }),
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-3.png') }),
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-4.png') }),
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-5.png') }),
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-6.png') }),
+  textures = [
+    loader.load('dice-1.png'), // 0 → 1の目
+    loader.load('dice-2.png'), // 1 → 2の目
+    loader.load('dice-3.png'), // 2 → 3の目
+    loader.load('dice-4.png'), // 3 → 4の目
+    loader.load('dice-5.png'), // 4 → 5の目
+    loader.load('dice-6.png')  // 5 → 6の目
   ];
+
+  const materials = textures.map(tex => new THREE.MeshBasicMaterial({ map: tex }));
 
   const geometry = new THREE.BoxGeometry(2, 2, 2);
   dice = new THREE.Mesh(geometry, materials);
@@ -174,49 +176,60 @@ function init3DDice() {
 function animate() {
   requestAnimationFrame(animate);
   if (rolling) {
-    dice.rotation.x += 0.1;
-    dice.rotation.y += 0.1;
+    dice.rotation.x += 0.2;
+    dice.rotation.y += 0.2;
   }
   renderer.render(scene, camera);
 }
 
+// 出目マッピング表
+const faceMapping = {
+  0: 1, // front (z+)
+  1: 6, // back (z-)
+  2: 3, // top (y+)
+  3: 4, // bottom (y-)
+  4: 2, // left (x-)
+  5: 5  // right (x+)
+};
+
+// サイコロを回すボタン
 document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
   if (rolling) return;
   rolling = true;
 
-  // ボタン押した瞬間に出目を新規決定
-  const randomFace = Math.ceil(Math.random() * 6); // 1〜6
-
-  // 2秒回す間はグルグル回転する
   const spinStart = Date.now();
-  const spinDuration = 2000; // 2秒
+  const spinDuration = 2000; // 2秒間回す
 
   function spin() {
     const elapsed = Date.now() - spinStart;
     if (elapsed < spinDuration) {
       dice.rotation.x += 0.3;
-      dice.rotation.y += 0.3;
+      dice.rotation.y += 0.4;
       requestAnimationFrame(spin);
     } else {
-      // スピン終了 → 出目に合わせた向きにピタッと止める
       rolling = false;
 
-      const rotations = {
-        1: { x: 0, y: 0 },
-        2: { x: Math.PI, y: 0 },
-        3: { x: 0, y: -Math.PI / 2 },
-        4: { x: 0, y: Math.PI / 2 },
-        5: { x: -Math.PI / 2, y: 0 },
-        6: { x: Math.PI / 2, y: 0 }
-      };
+      // 回転終了 → 表向きの面を判定する
+      const vector = new THREE.Vector3(0, 0, 1); // カメラ正面方向（z+）
+      vector.applyQuaternion(dice.quaternion); // ダイスの回転を反映
 
-      const rotation = rotations[randomFace];
+      const absX = Math.abs(vector.x);
+      const absY = Math.abs(vector.y);
+      const absZ = Math.abs(vector.z);
 
-      dice.rotation.x = rotation.x;
-      dice.rotation.y = rotation.y;
+      let faceIndex;
+      if (absX > absY && absX > absZ) {
+        faceIndex = vector.x > 0 ? 5 : 4; // x+ → right (5), x- → left (4)
+      } else if (absY > absX && absY > absZ) {
+        faceIndex = vector.y > 0 ? 2 : 3; // y+ → top (2), y- → bottom (3)
+      } else {
+        faceIndex = vector.z > 0 ? 0 : 1; // z+ → front (0), z- → back (1)
+      }
 
-      // 出目に応じた予算を表示（ここが完全一致）
-      document.getElementById('budget3dResult').textContent = `次の日の予算は ${randomFace * 10000}円だよ！`;
+      const rolledNumber = faceMapping[faceIndex];
+
+      // 出目をもとにテキスト表示
+      document.getElementById('budget3dResult').textContent = `次の日の予算は ${rolledNumber * 10000}円だよ！`;
     }
   }
 
