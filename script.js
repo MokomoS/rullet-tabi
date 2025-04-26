@@ -184,31 +184,43 @@ document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
   if (rolling) return;
   rolling = true;
 
-  let randomFace = Math.ceil(Math.random() * 6); // 1〜6の出目をランダム決定
+  // ボタン押した瞬間に出目を新規決定
+  const randomFace = Math.ceil(Math.random() * 6); // 1〜6
 
-  setTimeout(() => {
-    rolling = false;
+  // 2秒回す間はグルグル回転する
+  const spinStart = Date.now();
+  const spinDuration = 2000; // 2秒
 
-    // 出目に応じた正しい回転
-    const rotations = {
-      1: { x: 0, y: 0 },
-      2: { x: Math.PI, y: 0 },
-      3: { x: 0, y: -Math.PI / 2 },
-      4: { x: 0, y: Math.PI / 2 },
-      5: { x: -Math.PI / 2, y: 0 },
-      6: { x: Math.PI / 2, y: 0 }
-    };
+  function spin() {
+    const elapsed = Date.now() - spinStart;
+    if (elapsed < spinDuration) {
+      dice.rotation.x += 0.3;
+      dice.rotation.y += 0.3;
+      requestAnimationFrame(spin);
+    } else {
+      // スピン終了 → 出目に合わせた向きにピタッと止める
+      rolling = false;
 
-    const rotation = rotations[randomFace];
+      const rotations = {
+        1: { x: 0, y: 0 },
+        2: { x: Math.PI, y: 0 },
+        3: { x: 0, y: -Math.PI / 2 },
+        4: { x: 0, y: Math.PI / 2 },
+        5: { x: -Math.PI / 2, y: 0 },
+        6: { x: Math.PI / 2, y: 0 }
+      };
 
-    // ダイス回転を設定
-    dice.rotation.x = rotation.x;
-    dice.rotation.y = rotation.y;
+      const rotation = rotations[randomFace];
 
-    // 出目×1万円の予算表示
-    document.getElementById('budget3dResult').textContent = `次の日の予算は ${randomFace * 10000}円だよ！`;
+      dice.rotation.x = rotation.x;
+      dice.rotation.y = rotation.y;
 
-  }, 2000); // 2秒回転アニメ後
+      // 出目に応じた予算を表示（ここが完全一致）
+      document.getElementById('budget3dResult').textContent = `次の日の予算は ${randomFace * 10000}円だよ！`;
+    }
+  }
+
+  requestAnimationFrame(spin);
 });
 
 // === シェアボタン ===
