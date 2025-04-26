@@ -57,10 +57,10 @@ function highlightPrefecture(prefectureName) {
   }
 }
 
-// === 3Dダイス修正版 ===
+// 予算ダイス
 let scene, camera, renderer, dice;
 let rolling = false;
-let currentFace = 1; // 出目を記録
+let currentFace = 1; // 出た目を記憶
 
 init3DDice();
 
@@ -68,18 +68,19 @@ function init3DDice() {
   scene = new THREE.Scene();
   camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
   camera.position.z = 5;
+
   renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
   renderer.setSize(300, 300);
   document.getElementById('diceContainer').appendChild(renderer.domElement);
 
   const loader = new THREE.TextureLoader();
   const materials = [
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-1.png') }), // 面1
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-2.png') }), // 面2
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-3.png') }), // 面3
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-4.png') }), // 面4
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-5.png') }), // 面5
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-6.png') })  // 面6
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-1.png') }), // 1の目
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-2.png') }), // 2の目
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-3.png') }), // 3の目
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-4.png') }), // 4の目
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-5.png') }), // 5の目
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-6.png') }), // 6の目
   ];
 
   const geometry = new THREE.BoxGeometry(2, 2, 2);
@@ -98,29 +99,30 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-// 出目に合わせて固定する回転角（修正版）
-function setDiceRotationByFace(face) {
-  switch (face) {
-    case 1: dice.rotation.set(0, 0, 0); break;
-    case 2: dice.rotation.set(Math.PI / 2, 0, 0); break;
-    case 3: dice.rotation.set(0, Math.PI / 2, 0); break;
-    case 4: dice.rotation.set(0, -Math.PI / 2, 0); break;
-    case 5: dice.rotation.set(-Math.PI / 2, 0, 0); break;
-    case 6: dice.rotation.set(Math.PI, 0, 0); break;
-  }
-}
-
-// ボタンクリックでダイス回す！
 document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
   if (rolling) return;
   rolling = true;
+
   setTimeout(() => {
     rolling = false;
-    currentFace = Math.ceil(Math.random() * 6); // ここで出目を決定！
-    setDiceRotationByFace(currentFace);
 
+    // 1〜6をランダムに出目として選ぶ
+    currentFace = Math.ceil(Math.random() * 6);
+
+    // 出目に合わせてダイスの向き固定（リアル合わせ）
+    switch (currentFace) {
+      case 1: dice.rotation.set(0, 0, 0); break;
+      case 2: dice.rotation.set(Math.PI / 2, 0, 0); break;
+      case 3: dice.rotation.set(0, Math.PI / 2, 0); break;
+      case 4: dice.rotation.set(0, -Math.PI / 2, 0); break;
+      case 5: dice.rotation.set(-Math.PI / 2, 0, 0); break;
+      case 6: dice.rotation.set(Math.PI, 0, 0); break;
+    }
+
+    // 正しい出目で予算を表示
     document.getElementById('budget3dResult').textContent = `次の日の予算は ${currentFace * 10000}円 だよ！`;
-  }, 2000);
+
+  }, 2000); // 2秒後に止まる
 });
 
 // === X(Twitter)シェア ===
