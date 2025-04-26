@@ -156,10 +156,10 @@ function init() {
   scene = new THREE.Scene();
   scene.background = new THREE.Color(0xffffff);
 
-  // Camera（真上から見下ろす！）
+  // Camera（真上から見下ろす）
   camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
-  camera.position.set(0, 8, 0); // X=0, Y=8, Z=0
-  camera.lookAt(0, 0, 0); // 原点（サイコロ中心）を見下ろす
+  camera.position.set(0, 8, 0);
+  camera.lookAt(0, 0, 0);
 
   // Renderer
   renderer = new THREE.WebGLRenderer({ antialias: true });
@@ -174,26 +174,25 @@ function init() {
   // Load Textures
   const loader = new THREE.TextureLoader();
   textures = [
-    loader.load('dice-1.png'), // 上面（1）
-    loader.load('dice-6.png'), // 下面（6）
-    loader.load('dice-3.png'), // 右面（3）
-    loader.load('dice-4.png'), // 左面（4）
-    loader.load('dice-2.png'), // 前面（2）
-    loader.load('dice-5.png')  // 背面（5）
+    loader.load('dice-1.png'),
+    loader.load('dice-6.png'),
+    loader.load('dice-3.png'),
+    loader.load('dice-4.png'),
+    loader.load('dice-2.png'),
+    loader.load('dice-5.png')
   ];
 
-  // Dice Geometry
   const materials = textures.map(tex => new THREE.MeshPhongMaterial({ map: tex }));
   const geometry = new THREE.BoxGeometry(1, 1, 1);
   diceMesh = new THREE.Mesh(geometry, materials);
   scene.add(diceMesh);
 
-  // Physics World
+  // ★ ここでPhysics Worldを先に作る！！！
   world = new CANNON.World({
     gravity: new CANNON.Vec3(0, -9.82, 0),
   });
 
-  // Dice Body
+  // ★ それからDice Body作成
   const shape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
   diceBody = new CANNON.Body({
     mass: 1,
@@ -202,7 +201,7 @@ function init() {
   });
   world.addBody(diceBody);
 
-  // Ground
+  // ★ Ground作成
   const groundBody = new CANNON.Body({
     mass: 0,
     shape: new CANNON.Plane(),
@@ -210,6 +209,34 @@ function init() {
   });
   groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
   world.addBody(groundBody);
+
+  // ★ そして壁を追加する！
+  const wallMaterial = new CANNON.Material();
+  const wallShape = new CANNON.Plane();
+
+  const leftWall = new CANNON.Body({ mass: 0, material: wallMaterial });
+  leftWall.addShape(wallShape);
+  leftWall.position.set(-2, 0.5, 0);
+  leftWall.quaternion.setFromEuler(0, Math.PI / 2, 0);
+  world.addBody(leftWall);
+
+  const rightWall = new CANNON.Body({ mass: 0, material: wallMaterial });
+  rightWall.addShape(wallShape);
+  rightWall.position.set(2, 0.5, 0);
+  rightWall.quaternion.setFromEuler(0, -Math.PI / 2, 0);
+  world.addBody(rightWall);
+
+  const frontWall = new CANNON.Body({ mass: 0, material: wallMaterial });
+  frontWall.addShape(wallShape);
+  frontWall.position.set(0, 0.5, -2);
+  frontWall.quaternion.setFromEuler(0, 0, 0);
+  world.addBody(frontWall);
+
+  const backWall = new CANNON.Body({ mass: 0, material: wallMaterial });
+  backWall.addShape(wallShape);
+  backWall.position.set(0, 0.5, 2);
+  backWall.quaternion.setFromEuler(0, Math.PI, 0);
+  world.addBody(backWall);
 
   // Button Event
   document.getElementById('roll3dDiceBtn').addEventListener('click', rollDice);
