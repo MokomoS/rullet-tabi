@@ -139,94 +139,134 @@ function highlightPrefecture(prefectureName) {
 
 // === 3Dダイス ===
 
-let scene, camera, renderer, dice;
+import * as THREE from 'https://cdn.jsdelivr.net/npm/three@0.152.2/build/three.module.js';
+import * as CANNON from 'https://cdn.jsdelivr.net/npm/cannon-es@0.20.0/dist/cannon-es.js';
+
+let scene, camera, renderer;
+let world;
+let diceMesh, diceBody;
+let textures = [];
 let rolling = false;
-let materials = [];
 
-init3DDice();
+init();
+animate();
 
-function init3DDice() {
+function init() {
+  // Scene
   scene = new THREE.Scene();
-  camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
-  camera.position.z = 5;
+  scene.background = new THREE.Color(0xffffff);
 
-  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  // Camera
+  camera = new THREE.PerspectiveCamera(45, 1, 0.1, 100);
+  camera.position.set(0, 5, 8);
+
+  // Renderer
+  renderer = new THREE.WebGLRenderer({ antialias: true });
   renderer.setSize(300, 300);
   document.getElementById('diceContainer').appendChild(renderer.domElement);
 
+  // Light
+  const light = new THREE.DirectionalLight(0xffffff, 1);
+  light.position.set(10, 10, 10);
+  scene.add(light);
+
+  // Load Textures
   const loader = new THREE.TextureLoader();
-  materials = [
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-1.png') }), // Front
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-6.png') }), // Back
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-3.png') }), // Top
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-4.png') }), // Bottom
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-2.png') }), // Left
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-5.png') })  // Right
+  textures = [
+    loader.load('dice-1.png'), // 1
+    loader.load('dice-6.png'), // 6
+    loader.load('dice-3.png'), // 3
+    loader.load('dice-4.png'), // 4
+    loader.load('dice-2.png'), // 2
+    loader.load('dice-5.png')  // 5
   ];
 
-  const geometry = new THREE.BoxGeometry(2, 2, 2);
-  dice = new THREE.Mesh(geometry, materials);
-  scene.add(dice);
+  // Dice Geometry
+  const materials = textures.map(tex => new THREE.MeshPhongMaterial({ map: tex }));
+  const geometry = new THREE.BoxGeometry(1, 1, 1);
+  diceMesh = new THREE.Mesh(geometry, materials);
+  scene.add(diceMesh);
 
-  animate();
+  // Physics World
+  world = new CANNON.World({
+    gravity: new CANNON.Vec3(0, -9.82, 0),
+  });
+
+  // Dice Body
+  const shape = new CANNON.Box(new CANNON.Vec3(0.5, 0.5, 0.5));
+  diceBody = new CANNON.Body({
+    mass: 1,
+    shape: shape,
+    material: new CANNON.Material({ restitution: 0.6 }),
+  });
+  world.addBody(diceBody);
+
+  // Ground
+  const groundBody = new CANNON.Body({
+    mass: 0,
+    shape: new CANNON.Plane(),
+    material: new CANNON.Material(),
+  });
+  groundBody.quaternion.setFromEuler(-Math.PI / 2, 0, 0);
+  world.addBody(groundBody);
+
+  // Button Event
+  document.getElementById('roll3dDiceBtn').addEventListener('click', rollDice);
+}
+
+function rollDice() {
+  if (rolling) return;
+  rolling = true;
+
+  // Reset position and apply random force/torque
+  diceBody.position.set(0, 2, 0);
+  diceBody.velocity.set(
+    (Math.random() - 0.5) * 10,
+    5 + Math.random() * 5,
+    (Math.random() - 0.5) * 10
+  );
+  diceBody.angularVelocity.set(
+    (Math.random() - 0.5) * 20,
+    (Math.random() - 0.5) * 20,
+    (Math.random() - 0.5) * 20
+  );
+
+  setTimeout(() => {
+    checkDiceResult();
+    rolling = false;
+  }, 3000); // 3秒後に止まったとみなして出目判定
+}
+
+function checkDiceResult() {
+  const up = new THREE.Vector3(0, 1, 0);
+  up.applyQuaternion(diceMesh.quaternion);
+
+  const tolerance = 0.8;
+  let result = 0;
+
+  if (up.y > tolerance) result = 3; // Top (dice-3.png)
+  else if (up.y < -tolerance) result = 4; // Bottom (dice-4.png)
+  else if (up.z > tolerance) result = 1; // Front (dice-1.png)
+  else if (up.z < -tolerance) result = 6; // Back (dice-6.png)
+  else if (up.x > tolerance) result = 5; // Right (dice-5.png)
+  else if (up.x < -tolerance) result = 2; // Left (dice-2.png)
+
+  if (result) {
+    document.getElementById('budget3dResult').textContent = `次の日の予算は ${result * 10000}円だよ！`;
+  } else {
+    document.getElementById('budget3dResult').textContent = "もう一回振ってね！";
+  }
 }
 
 function animate() {
   requestAnimationFrame(animate);
-  if (rolling) {
-    dice.rotation.x += 0.2;
-    dice.rotation.y += 0.2;
-  }
+
+  world.fixedStep();
+  diceMesh.position.copy(diceBody.position);
+  diceMesh.quaternion.copy(diceBody.quaternion);
+
   renderer.render(scene, camera);
 }
-
-document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
-  if (rolling) return;
-  rolling = true;
-
-  const randomFace = Math.ceil(Math.random() * 6); // 出目を先に決める
-
-  const spinStart = Date.now();
-  const spinDuration = 2000; // 2秒回す
-
-  function spin() {
-    const elapsed = Date.now() - spinStart;
-    if (elapsed < spinDuration) {
-      dice.rotation.x += 0.3;
-      dice.rotation.y += 0.3;
-      requestAnimationFrame(spin);
-    } else {
-      rolling = false;
-
-      // 止まったら、ランダムな出目に応じて角度を決めて強制セット
-      switch (randomFace) {
-        case 1:
-          dice.rotation.set(0, 0, 0);
-          break;
-        case 2:
-          dice.rotation.set(0, Math.PI / 2, 0);
-          break;
-        case 3:
-          dice.rotation.set(-Math.PI / 2, 0, 0);
-          break;
-        case 4:
-          dice.rotation.set(Math.PI / 2, 0, 0);
-          break;
-        case 5:
-          dice.rotation.set(0, -Math.PI / 2, 0);
-          break;
-        case 6:
-          dice.rotation.set(Math.PI, 0, 0);
-          break;
-      }
-
-      // 出目×1万円でテキスト表示
-      document.getElementById('budget3dResult').textContent = `次の日の予算は ${randomFace * 10000}円だよ！`;
-    }
-  }
-
-  requestAnimationFrame(spin);
-});
 
 // === シェアボタン ===
 const shareBtn = document.getElementById('shareBtn');
