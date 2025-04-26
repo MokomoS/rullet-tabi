@@ -197,31 +197,31 @@ document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
   if (rolling) return;
   rolling = true;
 
+  // ランダムな回転量を決める
+  const randomX = (Math.random() * 4 + 6) * Math.PI; // 6π〜10πくらい
+  const randomY = (Math.random() * 4 + 6) * Math.PI; // 6π〜10πくらい
+
+  const targetRotation = {
+    x: dice.rotation.x + randomX,
+    y: dice.rotation.y + randomY
+  };
+
   const spinStart = Date.now();
-  const spinDuration = 2000; // 2秒間回転
+  const spinDuration = 2000; // 2秒
 
-  const jumpHeight = 2; // ジャンプの高さ
-  const jumpSpeed = 6;  // ジャンプの速さ（大きいと速い）
-
-  function spinAndBounce() {
+  function spin() {
     const elapsed = Date.now() - spinStart;
-
     if (elapsed < spinDuration) {
-      // 回転
-      dice.rotation.x += 0.3;
-      dice.rotation.y += 0.4;
-
-      // 上下バウンド
-      dice.position.y = Math.abs(Math.sin(elapsed / 1000 * jumpSpeed)) * jumpHeight;
-
-      requestAnimationFrame(spinAndBounce);
+      const t = elapsed / spinDuration;
+      dice.rotation.x = dice.rotation.x * (1 - t) + targetRotation.x * t;
+      dice.rotation.y = dice.rotation.y * (1 - t) + targetRotation.y * t;
+      requestAnimationFrame(spin);
     } else {
       rolling = false;
+      dice.rotation.x = targetRotation.x;
+      dice.rotation.y = targetRotation.y;
 
-      // 最後にy座標をリセット
-      dice.position.y = 0;
-
-      // 出目判定
+      // 出目を判定する
       const vector = new THREE.Vector3(0, 0, 1);
       vector.applyQuaternion(dice.quaternion);
 
@@ -238,13 +238,23 @@ document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
         faceIndex = vector.z > 0 ? 0 : 1;
       }
 
+      const faceMapping = {
+        0: 1, // front (z+)
+        1: 6, // back (z-)
+        2: 3, // top (y+)
+        3: 4, // bottom (y-)
+        4: 2, // left (x-)
+        5: 5  // right (x+)
+      };
+
       const rolledNumber = faceMapping[faceIndex];
 
+      // 出目×1万円の予算テキストを表示
       document.getElementById('budget3dResult').textContent = `次の日の予算は ${rolledNumber * 10000}円だよ！`;
     }
   }
 
-  requestAnimationFrame(spinAndBounce);
+  requestAnimationFrame(spin);
 });
 
 // === シェアボタン ===
