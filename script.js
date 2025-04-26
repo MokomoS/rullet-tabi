@@ -202,7 +202,7 @@ document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
     dice.rotation.y = rotation.y;
 
     // 出目×1万円
-    document.getElementById('budget3dResult').textContent = `次の日の予算は出目×10,000}円 だよ！`;
+    document.getElementById('budget3dResult').textContent = `次の日の予算は出目×10,000円 だよ！`;
   }, 2000);
 });
 
