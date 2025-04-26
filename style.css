@@ -94,13 +94,19 @@ footer {
 
 #mapContainer {
   width: 100%;
-  max-width: 600px; /* 最大幅（好みに応じて調整してOK） */
+  max-width: 600px;
   margin: 20px auto;
   overflow: hidden;
+  position: relative;
 }
 
-#mapContainer svg {
+.svg-wrapper {
+  width: 100%;
+}
+
+.svg-wrapper svg {
   width: 100%;
   height: auto;
   display: block;
 }
+
