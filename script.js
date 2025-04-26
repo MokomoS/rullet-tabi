@@ -141,7 +141,7 @@ function highlightPrefecture(prefectureName) {
 
 let scene, camera, renderer, dice;
 let rolling = false;
-let textures = [];
+let materials = [];
 
 init3DDice();
 
@@ -155,16 +155,14 @@ function init3DDice() {
   document.getElementById('diceContainer').appendChild(renderer.domElement);
 
   const loader = new THREE.TextureLoader();
-  textures = [
-    loader.load('dice-1.png'), // 0 → 1の目
-    loader.load('dice-2.png'), // 1 → 2の目
-    loader.load('dice-3.png'), // 2 → 3の目
-    loader.load('dice-4.png'), // 3 → 4の目
-    loader.load('dice-5.png'), // 4 → 5の目
-    loader.load('dice-6.png')  // 5 → 6の目
+  materials = [
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-1.png') }), // Front
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-6.png') }), // Back
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-3.png') }), // Top
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-4.png') }), // Bottom
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-2.png') }), // Left
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-5.png') })  // Right
   ];
-
-  const materials = textures.map(tex => new THREE.MeshBasicMaterial({ map: tex }));
 
   const geometry = new THREE.BoxGeometry(2, 2, 2);
   dice = new THREE.Mesh(geometry, materials);
@@ -182,54 +180,47 @@ function animate() {
   renderer.render(scene, camera);
 }
 
-// 出目マッピング表
-const faceMapping = {
-  0: 1, // front (z+)
-  1: 6, // back (z-)
-  2: 3, // top (y+)
-  3: 4, // bottom (y-)
-  4: 2, // left (x-)
-  5: 5  // right (x+)
-};
-
-// サイコロを回すボタン
 document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
   if (rolling) return;
   rolling = true;
 
-  // まず最初にランダムな出目（1〜6）を決める
-  const randomFace = Math.ceil(Math.random() * 6);
-
-  // 出目ごとの最終回転角度（これで出目と画像が必ず一致する）
-  const faceRotations = {
-    1: { x: 0, y: 0 },
-    2: { x: 0, y: Math.PI },
-    3: { x: 0, y: -Math.PI / 2 },
-    4: { x: 0, y: Math.PI / 2 },
-    5: { x: -Math.PI / 2, y: 0 },
-    6: { x: Math.PI / 2, y: 0 }
-  };
-
-  // 決めた出目に合わせた回転角
-  const targetRotation = faceRotations[randomFace];
+  const randomFace = Math.ceil(Math.random() * 6); // 出目を先に決める
 
   const spinStart = Date.now();
-  const spinDuration = 2000; // 2秒間ぐるぐる回す
+  const spinDuration = 2000; // 2秒回す
 
   function spin() {
     const elapsed = Date.now() - spinStart;
     if (elapsed < spinDuration) {
       dice.rotation.x += 0.3;
-      dice.rotation.y += 0.4;
+      dice.rotation.y += 0.3;
       requestAnimationFrame(spin);
     } else {
       rolling = false;
 
-      // 最後は決めた出目にピタッと合わせる
-      dice.rotation.x = targetRotation.x;
-      dice.rotation.y = targetRotation.y;
+      // 止まったら、ランダムな出目に応じて角度を決めて強制セット
+      switch (randomFace) {
+        case 1:
+          dice.rotation.set(0, 0, 0);
+          break;
+        case 2:
+          dice.rotation.set(0, Math.PI / 2, 0);
+          break;
+        case 3:
+          dice.rotation.set(-Math.PI / 2, 0, 0);
+          break;
+        case 4:
+          dice.rotation.set(Math.PI / 2, 0, 0);
+          break;
+        case 5:
+          dice.rotation.set(0, -Math.PI / 2, 0);
+          break;
+        case 6:
+          dice.rotation.set(Math.PI, 0, 0);
+          break;
+      }
 
-      // 出目に応じてテキスト表示
+      // 出目×1万円でテキスト表示
       document.getElementById('budget3dResult').textContent = `次の日の予算は ${randomFace * 10000}円だよ！`;
     }
   }
