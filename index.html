@@ -3,24 +3,51 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>今日の行き先ルーレット</title>
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@600&family=Noto+Sans+JP&display=swap" rel="stylesheet">
-  <link rel="stylesheet" href="stylesheet.css">
+  <title>ルーレット旅</title>
+  <link rel="stylesheet" href="style.css">
+  <script defer src="script.js"></script>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500&display=swap" rel="stylesheet">
 </head>
 <body>
   <header>
-    <h1>今日の行き先は？</h1>
+    <h1>ルーレット旅へ出発！</h1>
+    <p id="howto">
+      ①スタート地点を選ぶ → ②行き先を決める → ③予算ルーレット！
+    </p>
   </header>
 
   <main>
-    <button id="spinButton">行き先を決める！</button>
-    <div id="resultArea"></div>
+    <section id="startSection">
+      <label for="startPref">スタート地点を選んでね：</label>
+      <select id="startPref"></select>
+    </section>
+
+    <section id="rouletteSection">
+      <button id="destinationBtn">行き先を決める！</button>
+      <div id="destinationResult"></div>
+    </section>
+
+    <section id="mapSection">
+      <h2>地図</h2>
+      <div id="mapContainer">
+        <!-- ここにSVG地図を読み込む -->
+        <!-- (後ろでscript.jsがloadする仕組み) -->
+      </div>
+    </section>
+
+    <section id="budgetSection">
+      <button id="rollDiceBtn">予算ルーレットを回す！</button>
+      <div id="diceArea">🎲</div>
+      <div id="budgetResult"></div>
+    </section>
+
+    <button id="shareBtn">
+      <img src="https://abs.twimg.com/favicons/twitter.2.ico" alt="X(Twitter)ロゴ"> 結果をシェア
+    </button>
   </main>
 
   <footer>
-    <button id="shareButton">結果をシェア</button>
+    <small>&copy; 2025 ルーレット旅</small>
   </footer>
-
-  <script src="script.js"></script>
 </body>
 </html>
