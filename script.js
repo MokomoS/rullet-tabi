@@ -34,7 +34,7 @@ prefectures.forEach(pref => {
 });
 
 // 地図読み込み
-fetch('japan.svg')
+fetch('japan-map.svg')
   .then(response => response.text())
   .then(svg => {
     document.getElementById('mapContainer').innerHTML = svg;
