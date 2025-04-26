@@ -102,20 +102,32 @@ function animate() {
 document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
   if (rolling) return;
   rolling = true;
+
   setTimeout(() => {
     rolling = false;
+
+    // 出目を決定
     currentFace = Math.ceil(Math.random() * 6);
 
-    switch (currentFace) {
-      case 1: dice.rotation.set(0, 0, 0); break;
-      case 2: dice.rotation.set(Math.PI / 2, 0, 0); break;
-      case 3: dice.rotation.set(0, Math.PI / 2, 0); break;
-      case 4: dice.rotation.set(0, -Math.PI / 2, 0); break;
-      case 5: dice.rotation.set(-Math.PI / 2, 0, 0); break;
-      case 6: dice.rotation.set(Math.PI, 0, 0); break;
-    }
+    // 出目に対応するダイスの角度を決める
+    // Three.jsの座標系に合わせて面を合わせる
+    const rotations = {
+      1: { x: 0, y: 0 },
+      2: { x: Math.PI / 2, y: 0 },
+      3: { x: 0, y: -Math.PI / 2 },
+      4: { x: 0, y: Math.PI / 2 },
+      5: { x: -Math.PI / 2, y: 0 },
+      6: { x: Math.PI, y: 0 }
+    };
 
+    const rotation = rotations[currentFace];
+
+    dice.rotation.x = rotation.x;
+    dice.rotation.y = rotation.y;
+
+    // 正しい出目で予算を表示
     document.getElementById('budget3dResult').textContent = `次の日の予算は ${currentFace * 10000}円 だよ！`;
+
   }, 2000);
 });
 
