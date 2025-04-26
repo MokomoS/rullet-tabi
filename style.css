@@ -91,3 +91,16 @@ footer {
   padding: 10px;
   background: #eee;
 }
+
+#mapContainer {
+  width: 100%;
+  max-width: 600px; /* 最大幅（好みに応じて調整してOK） */
+  margin: 20px auto;
+  overflow: hidden;
+}
+
+#mapContainer svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
