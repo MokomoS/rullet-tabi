@@ -84,13 +84,13 @@ const prefectureIdMap = {
   "宮崎県": "JP45", "鹿児島県": "JP46", "沖縄県": "JP47"
 };
 
-// 地図読み込み
 fetch('japan-map.svg')
   .then(response => response.text())
-  .then(svg => {
-    document.getElementById('mapContainer').innerHTML = svg;
+  .then(svgText => {
+    const wrapper = `<div class="svg-wrapper">${svgText}</div>`;
+    document.getElementById('mapContainer').innerHTML = wrapper;
 
-    // ※ 地図読み込んだ後にイベント設定！！
+    // 地図クリックイベント（読み込んだ後に）
     document.querySelectorAll('#mapContainer path, #mapContainer circle').forEach(el => {
       el.addEventListener('click', (e) => {
         const clickedId = e.target.id;
