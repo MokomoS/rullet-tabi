@@ -10,21 +10,7 @@ const prefectures = [
   "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"
 ];
 
-// 都道府県名 → SVG上のIDマップ
-const prefectureIdMap = {
-  "北海道": "JP-01", "青森県": "JP-02", "岩手県": "JP-03", "宮城県": "JP-04", "秋田県": "JP-05",
-  "山形県": "JP-06", "福島県": "JP-07", "茨城県": "JP-08", "栃木県": "JP-09", "群馬県": "JP-10",
-  "埼玉県": "JP-11", "千葉県": "JP-12", "東京都": "JP-13", "神奈川県": "JP-14",
-  "新潟県": "JP-15", "富山県": "JP-16", "石川県": "JP-17", "福井県": "JP-18", "山梨県": "JP-19",
-  "長野県": "JP-20", "岐阜県": "JP-21", "静岡県": "JP-22", "愛知県": "JP-23", "三重県": "JP-24",
-  "滋賀県": "JP-25", "京都府": "JP-26", "大阪府": "JP-27", "兵庫県": "JP-28", "奈良県": "JP-29",
-  "和歌山県": "JP-30", "鳥取県": "JP-31", "島根県": "JP-32", "岡山県": "JP-33", "広島県": "JP-34",
-  "山口県": "JP-35", "徳島県": "JP-36", "香川県": "JP-37", "愛媛県": "JP-38", "高知県": "JP-39",
-  "福岡県": "JP-40", "佐賀県": "JP-41", "長崎県": "JP-42", "熊本県": "JP-43", "大分県": "JP-44",
-  "宮崎県": "JP-45", "鹿児島県": "JP-46", "沖縄県": "JP-47"
-};
-
-// スタート地点ドロップダウン
+// スタート地点設定
 const startPref = document.getElementById('startPref');
 prefectures.forEach(pref => {
   const option = document.createElement('option');
@@ -33,38 +19,113 @@ prefectures.forEach(pref => {
   startPref.appendChild(option);
 });
 
+// 隣接県マップ
+const adjacentPrefectures = {
+  "北海道": ["青森県"],
+  "青森県": ["北海道", "秋田県", "岩手県"],
+  "岩手県": ["青森県", "秋田県", "宮城県"],
+  "宮城県": ["岩手県", "山形県", "福島県"],
+  "秋田県": ["青森県", "岩手県", "山形県"],
+  "山形県": ["秋田県", "宮城県", "福島県", "新潟県"],
+  "福島県": ["宮城県", "山形県", "栃木県", "群馬県", "茨城県", "新潟県"],
+  "茨城県": ["福島県", "栃木県", "埼玉県", "千葉県"],
+  "栃木県": ["福島県", "群馬県", "茨城県", "埼玉県"],
+  "群馬県": ["福島県", "栃木県", "埼玉県", "長野県", "新潟県"],
+  "埼玉県": ["群馬県", "栃木県", "茨城県", "千葉県", "東京都", "山梨県", "長野県"],
+  "千葉県": ["茨城県", "埼玉県", "東京都"],
+  "東京都": ["埼玉県", "千葉県", "神奈川県", "山梨県"],
+  "神奈川県": ["東京都", "山梨県", "静岡県"],
+  "新潟県": ["山形県", "福島県", "群馬県", "長野県"],
+  "富山県": ["新潟県", "長野県", "岐阜県", "石川県"],
+  "石川県": ["富山県", "岐阜県", "福井県"],
+  "福井県": ["石川県", "岐阜県", "滋賀県"],
+  "山梨県": ["静岡県", "神奈川県", "東京都", "埼玉県", "長野県"],
+  "長野県": ["新潟県", "群馬県", "埼玉県", "山梨県", "静岡県", "岐阜県"],
+  "岐阜県": ["富山県", "石川県", "福井県", "滋賀県", "愛知県", "長野県"],
+  "静岡県": ["山梨県", "神奈川県", "愛知県", "長野県"],
+  "愛知県": ["岐阜県", "静岡県", "三重県"],
+  "三重県": ["滋賀県", "奈良県", "愛知県", "和歌山県"],
+  "滋賀県": ["福井県", "岐阜県", "三重県", "京都府"],
+  "京都府": ["滋賀県", "福井県", "大阪府", "奈良県"],
+  "大阪府": ["京都府", "奈良県", "兵庫県"],
+  "兵庫県": ["京都府", "大阪府", "鳥取県", "岡山県"],
+  "奈良県": ["三重県", "滋賀県", "大阪府", "京都府", "和歌山県"],
+  "和歌山県": ["三重県", "奈良県"],
+  "鳥取県": ["兵庫県", "岡山県", "島根県"],
+  "島根県": ["鳥取県", "広島県", "山口県"],
+  "岡山県": ["兵庫県", "鳥取県", "広島県"],
+  "広島県": ["岡山県", "島根県", "山口県"],
+  "山口県": ["広島県", "島根県", "福岡県"],
+  "徳島県": ["香川県", "高知県"],
+  "香川県": ["徳島県", "愛媛県"],
+  "愛媛県": ["香川県", "高知県"],
+  "高知県": ["徳島県", "愛媛県"],
+  "福岡県": ["山口県", "佐賀県", "大分県"],
+  "佐賀県": ["福岡県", "長崎県"],
+  "長崎県": ["佐賀県"],
+  "熊本県": ["福岡県", "大分県", "宮崎県", "鹿児島県"],
+  "大分県": ["福岡県", "熊本県", "宮崎県"],
+  "宮崎県": ["熊本県", "大分県", "鹿児島県"],
+  "鹿児島県": ["宮崎県", "熊本県"],
+  "沖縄県": []
+};
+
+// prefectureIdMap （あなたのSVGに合わせてハイフンなし/あり選ぶ）
+const prefectureIdMap = {
+  "北海道": "JP-01", "青森県": "JP-02", /*省略*/ "鹿児島県": "JP-46", "沖縄県": "JP-47"
+};
+
 // 地図読み込み
-fetch('japan-map.svg')
+fetch('japan.svg')
   .then(response => response.text())
   .then(svg => {
     document.getElementById('mapContainer').innerHTML = svg;
+
+    // 地図クリックイベント
+    document.querySelectorAll('#mapContainer path, #mapContainer circle').forEach(el => {
+      el.addEventListener('click', (e) => {
+        const clickedId = e.target.id;
+        const prefName = Object.keys(prefectureIdMap).find(name => prefectureIdMap[name] === clickedId);
+        if (prefName) {
+          startPref.value = prefName;
+        }
+      });
+    });
   });
 
 // 行き先決定ボタン
 const destinationBtn = document.getElementById('destinationBtn');
 const destinationResult = document.getElementById('destinationResult');
 destinationBtn.addEventListener('click', () => {
-  const randomPref = prefectures[Math.floor(Math.random() * prefectures.length)];
+  const start = startPref.value;
+  const candidates = adjacentPrefectures[start] || prefectures;
+  const randomPref = candidates[Math.floor(Math.random() * candidates.length)];
   destinationResult.textContent = `次の行き先は「${randomPref}」！`;
   highlightPrefecture(randomPref);
 });
 
-// ハイライト処理
+// ハイライト処理（ふわふわ演出）
 function highlightPrefecture(prefectureName) {
   const prefId = prefectureIdMap[prefectureName];
   if (!prefId) return;
 
-  // 地図読み込み完了後にハイライト
-  setTimeout(() => {
-    document.querySelectorAll('#mapContainer path, #mapContainer circle').forEach(el => {
-      el.setAttribute('fill', '#cce5ff');
+  document.querySelectorAll('#mapContainer path, #mapContainer circle').forEach(el => {
+    el.setAttribute('fill', '#cce5ff');
+  });
+
+  const selected = document.getElementById(prefId);
+  if (selected) {
+    selected.setAttribute('fill', '#1976d2');
+    selected.animate([
+      { opacity: 0.5 },
+      { opacity: 1 },
+      { opacity: 0.5 },
+      { opacity: 1 }
+    ], {
+      duration: 2000,
+      iterations: 1
     });
-    const selected = document.getElementById(prefId);
-    if (selected) {
-      selected.setAttribute('fill', '#1976d2');
-      selected.animate([{ opacity: 0.5 }, { opacity: 1 }], { duration: 1000, iterations: 2 });
-    }
-  }, 100);
+  }
 }
 
 // === 3Dダイス ===
