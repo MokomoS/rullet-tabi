@@ -20,16 +20,16 @@ prefectures.forEach(pref => {
   startPref.appendChild(option);
 });
 
-// 地図SVG読み込み
-fetch('japan-map.svg')
+// 地図読み込み
+fetch('japan.svg')
   .then(response => response.text())
   .then(svg => {
     document.getElementById('mapContainer').innerHTML = svg;
   });
 
-// 県IDマッピング（例：東京都 → JP-13）
+// prefectureIdMap（ハイフンなし版）
 const prefectureIdMap = {
-  "北海道": "JP-01", "青森県": "JP-02", "岩手県": "JP-03", /*...*/ "沖縄県": "JP-47"
+  "北海道": "JP01", "青森県": "JP02", "岩手県": "JP03", /*...*/ "鹿児島県": "JP46", "沖縄県": "JP47"
 };
 
 // 行き先決定
@@ -41,26 +41,26 @@ destinationBtn.addEventListener('click', () => {
   highlightPrefecture(randomPref);
 });
 
-// 地図強調
+// 県ハイライト
 function highlightPrefecture(prefectureName) {
   const prefId = prefectureIdMap[prefectureName];
   if (!prefId) return;
 
-  document.querySelectorAll('#mapContainer path').forEach(path => {
-    path.setAttribute('fill', '#cce5ff');
+  document.querySelectorAll('#mapContainer circle, #mapContainer path').forEach(el => {
+    el.setAttribute('fill', '#cce5ff');
   });
 
   const selected = document.getElementById(prefId);
   if (selected) {
     selected.setAttribute('fill', '#1976d2');
-    selected.animate([{ opacity: 0.5 }, { opacity: 1 }], { duration: 1000, iterations: 3 });
+    selected.animate([{ opacity: 0.5 }, { opacity: 1 }], { duration: 1000, iterations: 2 });
   }
 }
 
-// 予算ダイス
+// === 3Dダイス ===
 let scene, camera, renderer, dice;
 let rolling = false;
-let currentFace = 1; // 出た目を記憶
+let currentFace = 1;
 
 init3DDice();
 
@@ -75,12 +75,12 @@ function init3DDice() {
 
   const loader = new THREE.TextureLoader();
   const materials = [
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-1.png') }), // 1の目
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-2.png') }), // 2の目
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-3.png') }), // 3の目
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-4.png') }), // 4の目
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-5.png') }), // 5の目
-    new THREE.MeshBasicMaterial({ map: loader.load('dice-6.png') }), // 6の目
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-1.png') }),
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-2.png') }),
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-3.png') }),
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-4.png') }),
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-5.png') }),
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-6.png') }),
   ];
 
   const geometry = new THREE.BoxGeometry(2, 2, 2);
@@ -102,14 +102,10 @@ function animate() {
 document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
   if (rolling) return;
   rolling = true;
-
   setTimeout(() => {
     rolling = false;
-
-    // 1〜6をランダムに出目として選ぶ
     currentFace = Math.ceil(Math.random() * 6);
 
-    // 出目に合わせてダイスの向き固定（リアル合わせ）
     switch (currentFace) {
       case 1: dice.rotation.set(0, 0, 0); break;
       case 2: dice.rotation.set(Math.PI / 2, 0, 0); break;
@@ -119,13 +115,11 @@ document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
       case 6: dice.rotation.set(Math.PI, 0, 0); break;
     }
 
-    // 正しい出目で予算を表示
     document.getElementById('budget3dResult').textContent = `次の日の予算は ${currentFace * 10000}円 だよ！`;
-
-  }, 2000); // 2秒後に止まる
+  }, 2000);
 });
 
-// === X(Twitter)シェア ===
+// === シェアボタン
 const shareBtn = document.getElementById('shareBtn');
 shareBtn.addEventListener('click', () => {
   const text = `${destinationResult.textContent} ${document.getElementById('budget3dResult').textContent} #ルーレット旅`;
