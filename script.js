@@ -184,11 +184,12 @@ document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
   if (rolling) return;
   rolling = true;
 
+  let randomFace = Math.ceil(Math.random() * 6); // まず出目だけ決める
+
   setTimeout(() => {
     rolling = false;
-    currentFace = Math.ceil(Math.random() * 6);
 
-    // 正しい向きに固定
+    // 出目に合わせてダイスの向きを固定する
     const rotations = {
       1: { x: 0, y: 0 },
       2: { x: Math.PI / 2, y: 0 },
@@ -197,13 +198,15 @@ document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
       5: { x: -Math.PI / 2, y: 0 },
       6: { x: Math.PI, y: 0 }
     };
-    const rotation = rotations[currentFace];
+
+    const rotation = rotations[randomFace];
     dice.rotation.x = rotation.x;
     dice.rotation.y = rotation.y;
 
-    // 出目×1万円
-    document.getElementById('budget3dResult').textContent = `次の日の予算は出目×10,000円 だよ！`;
-  }, 2000);
+    // 出た目 × 1万円の予算を表示する
+    document.getElementById('budget3dResult').textContent = `次の日の予算は ${randomFace * 10000}円 だよ！`;
+
+  }, 2000); // ダイス回転時間が2秒ならここも2秒
 });
 
 // === シェアボタン ===
