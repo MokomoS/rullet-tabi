@@ -266,30 +266,18 @@ function rollDice() {
 }
 
 function checkDiceResult() {
-  const cameraDirection = new THREE.Vector3(0, -1, 0); // カメラが真上から見下ろしてるのでY-方向
-  
-  const quaternion = diceMesh.quaternion;
-  
-  const faces = [
-    { normal: new THREE.Vector3(0, 1, 0), value: 1 },   // 上面（1）
-    { normal: new THREE.Vector3(0, -1, 0), value: 6 },  // 下面（6）
-    { normal: new THREE.Vector3(1, 0, 0), value: 3 },   // 右面（3）
-    { normal: new THREE.Vector3(-1, 0, 0), value: 4 },  // 左面（4）
-    { normal: new THREE.Vector3(0, 0, 1), value: 2 },   // 前面（2）
-    { normal: new THREE.Vector3(0, 0, -1), value: 5 }   // 背面（5）
-  ];
+  const up = new THREE.Vector3(0, 1, 0); // 上方向ベクトル
+  up.applyQuaternion(diceMesh.quaternion);
 
-  let maxDot = -Infinity;
-  let result = null;
+  const tolerance = 0.8;
+  let result = 0;
 
-  faces.forEach(face => {
-    const worldNormal = face.normal.clone().applyQuaternion(quaternion);
-    const dot = worldNormal.dot(cameraDirection);
-    if (dot > maxDot) {
-      maxDot = dot;
-      result = face.value;
-    }
-  });
+  if (up.y > tolerance) result = 1; // 上面（dice-1.png）
+  else if (up.y < -tolerance) result = 6; // 下面（dice-6.png）
+  else if (up.x > tolerance) result = 4; // 右面（dice-4.png）
+  else if (up.x < -tolerance) result = 3; // 左面（dice-3.png）
+  else if (up.z > tolerance) result = 2; // 前面（dice-2.png）
+  else if (up.z < -tolerance) result = 5; // 背面（dice-5.png）
 
   if (result) {
     document.getElementById('budget3dResult').textContent = `次の日の予算は ${result * 10000}円だよ！`;
