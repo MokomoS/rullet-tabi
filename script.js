@@ -90,7 +90,7 @@ fetch('japan-map.svg')
   .then(svg => {
     document.getElementById('mapContainer').innerHTML = svg;
 
-    // 地図クリックイベント
+    // ※ 地図読み込んだ後にイベント設定！！
     document.querySelectorAll('#mapContainer path, #mapContainer circle').forEach(el => {
       el.addEventListener('click', (e) => {
         const clickedId = e.target.id;
