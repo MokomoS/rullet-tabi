@@ -95,18 +95,17 @@ footer {
 #mapContainer {
   width: 100%;
   max-width: 600px;
-  margin: 20px auto;
+  margin: 0 auto;
+  padding: 0;
   overflow: hidden;
-  position: relative;
+  box-sizing: border-box;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
-.svg-wrapper {
-  width: 100%;
-}
-
-.svg-wrapper svg {
+#mapContainer svg {
   width: 100%;
   height: auto;
   display: block;
 }
-
