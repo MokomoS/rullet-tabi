@@ -41,7 +41,7 @@ button:hover {
   background: #45a049;
 }
 
-#destinationResult, #budgetResult {
+#destinationResult, #budget3dResult {
   margin-top: 20px;
   font-size: 1.5em;
   color: #333;
@@ -55,10 +55,21 @@ button:hover {
   border: 2px solid #ccc;
 }
 
-#diceArea {
-  margin: 20px auto;
-  font-size: 5em;
-  animation: none;
+#diceContainer {
+  width: 300px;
+  height: 300px;
+  margin: 0 auto;
+}
+
+#roll3dDiceBtn {
+  font-size: 1.2em;
+  padding: 10px 20px;
+  margin-top: 20px;
+  background: #ff5722;
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
 }
 
 #shareBtn {
@@ -79,27 +90,4 @@ footer {
   margin-top: 40px;
   padding: 10px;
   background: #eee;
-}
-
-#diceContainer {
-  width: 300px;
-  height: 300px;
-  margin: 0 auto;
-}
-
-#roll3dDiceBtn {
-  font-size: 1.2em;
-  padding: 10px 20px;
-  margin-top: 20px;
-  background: #ff5722;
-  color: white;
-  border: none;
-  border-radius: 20px;
-  cursor: pointer;
-}
-
-#budget3dResult {
-  margin-top: 20px;
-  font-size: 1.5em;
-  color: #333;
 }
