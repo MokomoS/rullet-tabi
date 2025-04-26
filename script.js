@@ -198,20 +198,32 @@ document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
   rolling = true;
 
   const spinStart = Date.now();
-  const spinDuration = 2000; // 2秒間回す
+  const spinDuration = 2000; // 2秒間回転
 
-  function spin() {
+  const jumpHeight = 2; // ジャンプの高さ
+  const jumpSpeed = 6;  // ジャンプの速さ（大きいと速い）
+
+  function spinAndBounce() {
     const elapsed = Date.now() - spinStart;
+
     if (elapsed < spinDuration) {
+      // 回転
       dice.rotation.x += 0.3;
       dice.rotation.y += 0.4;
-      requestAnimationFrame(spin);
+
+      // 上下バウンド
+      dice.position.y = Math.abs(Math.sin(elapsed / 1000 * jumpSpeed)) * jumpHeight;
+
+      requestAnimationFrame(spinAndBounce);
     } else {
       rolling = false;
 
-      // 回転終了 → 表向きの面を判定する
-      const vector = new THREE.Vector3(0, 0, 1); // カメラ正面方向（z+）
-      vector.applyQuaternion(dice.quaternion); // ダイスの回転を反映
+      // 最後にy座標をリセット
+      dice.position.y = 0;
+
+      // 出目判定
+      const vector = new THREE.Vector3(0, 0, 1);
+      vector.applyQuaternion(dice.quaternion);
 
       const absX = Math.abs(vector.x);
       const absY = Math.abs(vector.y);
@@ -219,21 +231,20 @@ document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
 
       let faceIndex;
       if (absX > absY && absX > absZ) {
-        faceIndex = vector.x > 0 ? 5 : 4; // x+ → right (5), x- → left (4)
+        faceIndex = vector.x > 0 ? 5 : 4;
       } else if (absY > absX && absY > absZ) {
-        faceIndex = vector.y > 0 ? 2 : 3; // y+ → top (2), y- → bottom (3)
+        faceIndex = vector.y > 0 ? 2 : 3;
       } else {
-        faceIndex = vector.z > 0 ? 0 : 1; // z+ → front (0), z- → back (1)
+        faceIndex = vector.z > 0 ? 0 : 1;
       }
 
       const rolledNumber = faceMapping[faceIndex];
 
-      // 出目をもとにテキスト表示
       document.getElementById('budget3dResult').textContent = `次の日の予算は ${rolledNumber * 10000}円だよ！`;
     }
   }
 
-  requestAnimationFrame(spin);
+  requestAnimationFrame(spinAndBounce);
 });
 
 // === シェアボタン ===
