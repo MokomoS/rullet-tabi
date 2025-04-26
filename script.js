@@ -96,3 +96,68 @@ shareBtn.addEventListener('click', () => {
   const shareURL = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
   window.open(shareURL, '_blank');
 });
+
+// === 3Dダイス ===
+
+let scene, camera, renderer, dice;
+let rolling = false;
+
+init3DDice();
+
+function init3DDice() {
+  scene = new THREE.Scene();
+  camera = new THREE.PerspectiveCamera(50, 1, 0.1, 1000);
+  camera.position.z = 5;
+
+  renderer = new THREE.WebGLRenderer({ antialias: true, alpha: true });
+  renderer.setSize(300, 300);
+  document.getElementById('diceContainer').appendChild(renderer.domElement);
+
+  // サイコロの目 (1～6のテクスチャ)
+  const loader = new THREE.TextureLoader();
+  const materials = [
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-1.png') }),
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-2.png') }),
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-3.png') }),
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-4.png') }),
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-5.png') }),
+    new THREE.MeshBasicMaterial({ map: loader.load('dice-6.png') }),
+  ];
+
+  const geometry = new THREE.BoxGeometry(2, 2, 2);
+  dice = new THREE.Mesh(geometry, materials);
+  scene.add(dice);
+
+  animate();
+}
+
+function animate() {
+  requestAnimationFrame(animate);
+  if (rolling) {
+    dice.rotation.x += 0.1;
+    dice.rotation.y += 0.1;
+  }
+  renderer.render(scene, camera);
+}
+
+// 3Dダイスを回す
+document.getElementById('roll3dDiceBtn').addEventListener('click', () => {
+  if (rolling) return;
+  rolling = true;
+  setTimeout(() => {
+    rolling = false;
+    const rollResult = Math.ceil(Math.random() * 6);
+
+    // 出目に応じてダイスの向き固定
+    switch (rollResult) {
+      case 1: dice.rotation.set(0, 0, 0); break;
+      case 2: dice.rotation.set(Math.PI / 2, 0, 0); break;
+      case 3: dice.rotation.set(0, Math.PI / 2, 0); break;
+      case 4: dice.rotation.set(0, -Math.PI / 2, 0); break;
+      case 5: dice.rotation.set(-Math.PI / 2, 0, 0); break;
+      case 6: dice.rotation.set(Math.PI, 0, 0); break;
+    }
+
+    document.getElementById('budget3dResult').textContent = `次の日の予算は ${rollResult * 10000}円 だよ！`;
+  }, 2000); // 2秒後に止まる
+});
