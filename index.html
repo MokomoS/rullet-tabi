@@ -1,51 +1,620 @@
 <!DOCTYPE html>
 <html lang="ja">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>2025年GWルーレット旅</title>
-  <link rel="stylesheet" href="style.css">
-  <script type="module" src="script.js"></script>
-  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@500&display=swap" rel="stylesheet">
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ルーレット旅 NEXT</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&family=Noto+Sans+JP:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        /* Custom styles */
+        body {
+            font-family: 'Inter', 'Noto Sans JP', sans-serif;
+            background-color: #f0f4f8; /* Light blue-gray background */
+            color: #1e293b; /* Dark slate text */
+        }
+
+        /* SVG Map Styling */
+        .svg-wrapper {
+            max-width: 600px; /* Adjust as needed */
+            margin: 2rem auto;
+            border: 1px solid #cbd5e1; /* Slate-300 border */
+            border-radius: 0.5rem;
+            background-color: #ffffff; /* White background for map */
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1), 0 2px 4px -2px rgb(0 0 0 / 0.1);
+            overflow: hidden; /* Ensure SVG stays within rounded corners */
+        }
+        .svg-wrapper svg {
+            display: block;
+            width: 100%;
+            height: auto;
+        }
+        #mapContainer path,
+        #mapContainer circle {
+            fill: #e2e8f0; /* Default fill color (Slate-200) */
+            stroke: #94a3b8; /* Stroke color (Slate-400) */
+            stroke-width: 0.5;
+            transition: fill 0.3s ease;
+            cursor: pointer;
+        }
+        #mapContainer path:hover,
+        #mapContainer circle:hover {
+            fill: #bfdbfe; /* Lighter blue on hover (Blue-200) */
+        }
+        .highlighted-prefecture {
+            fill: #3b82f6 !important; /* Highlight color (Blue-500) */
+            animation: pulse 2s ease-in-out;
+        }
+        .start-prefecture {
+             fill: #f59e0b !important; /* Start color (Amber-500) */
+        }
+
+        @keyframes pulse {
+            0%, 100% { opacity: 1; transform: scale(1); }
+            50% { opacity: 0.7; transform: scale(1.02); }
+        }
+
+        /* Dice animation */
+        #diceImage {
+            transition: transform 0.1s ease-in-out;
+        }
+        .dice-rolling {
+            animation: roll 0.5s linear infinite;
+        }
+        @keyframes roll {
+            0% { transform: rotate(0deg) scale(1); }
+            100% { transform: rotate(360deg) scale(1.1); }
+        }
+
+        /* Weather Icons (Simple placeholders) */
+        .weather-icon {
+            width: 40px;
+            height: 40px;
+            display: inline-block;
+            vertical-align: middle;
+            margin-right: 0.5rem;
+            background-size: contain;
+            background-repeat: no-repeat;
+            background-position: center;
+        }
+        .weather-sunny { background-image: url('https://placehold.co/40x40/facc15/1e293b?text=☀️'); } /* Amber-400 */
+        .weather-cloudy { background-image: url('https://placehold.co/40x40/94a3b8/1e293b?text=☁️'); } /* Slate-400 */
+        .weather-rainy { background-image: url('https://placehold.co/40x40/60a5fa/1e293b?text=🌧️'); } /* Blue-400 */
+        .weather-snowy { background-image: url('https://placehold.co/40x40/e0f2fe/1e293b?text=❄️'); } /* Cyan-100 */
+        .weather-default { background-image: url('https://placehold.co/40x40/cbd5e1/1e293b?text=?'); } /* Slate-300 */
+
+        /* General Section Styling */
+        section {
+            background-color: #ffffff;
+            padding: 1.5rem; /* p-6 */
+            margin-bottom: 1.5rem; /* mb-6 */
+            border-radius: 0.5rem; /* rounded-lg */
+            box-shadow: 0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1);
+        }
+
+        /* Button Styling */
+        button, select {
+            transition: all 0.2s ease-in-out;
+        }
+        button:hover:not(:disabled) {
+            opacity: 0.85;
+            transform: translateY(-1px);
+        }
+        button:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* Share Button Specific */
+        #shareBtn img {
+            width: 16px;
+            height: 16px;
+            margin-right: 8px;
+            vertical-align: text-bottom;
+        }
+    </style>
 </head>
-<body>
-  <header>
-    <h1>2025年GW<br>ルーレット旅へ出発！</h1>
-    <p id="howto">
-      1. スタートする都道府県を選んで！<br>2. 行き先ルーレットを回す！<br>3. 予算ルーレットを回す！
+<body class="min-h-screen p-4 md:p-8">
+
+  <header class="text-center mb-8">
+    <h1 class="text-3xl md:text-4xl font-bold mb-4 text-blue-600">ルーレット旅 NEXT!</h1>
+    <p class="text-slate-600 max-w-md mx-auto">
+      1. スタート地点を選んでね！<br>
+      2. 行き先ルーレットを回そう！<br>
+      3. 予算ダイスで運試し！
     </p>
   </header>
 
-  <main>
-    <section id="startSection">
-      <label for="startPref">スタート地点を選んでね：</label>
-      <select id="startPref"></select>
-    </section>
+  <main class="max-w-4xl mx-auto">
 
-    <section id="rouletteSection">
-      <button id="destinationBtn">行き先ルーレットを回す！</button>
-      <div id="destinationResult"></div>
+    <section id="startSection" class="flex flex-col sm:flex-row items-center justify-center gap-4">
+      <label for="startPref" class="font-medium text-slate-700">スタート地点:</label>
+      <select id="startPref" class="p-2 border border-slate-300 rounded-md shadow-sm focus:ring-blue-500 focus:border-blue-500">
+        </select>
     </section>
 
     <section id="mapSection">
-      <h2>地図</h2>
-      <div id="mapContainer"></div>
+      <h2 class="text-xl font-semibold mb-4 text-center text-slate-700">地図 (クリックでスタート地点変更)</h2>
+      <div id="mapContainer">
+          <div class="text-center text-slate-500">地図を読み込み中...</div>
+      </div>
     </section>
 
-    <section id="dice3dSection">
-      <h2>予算ダイスを回して！</h2>
-      <div id="diceContainer"></div>
-      <div id="budget3dResult"></div>
-      <button id="roll3dDiceBtn">ダイスを回す！</button>
+    <section id="rouletteSection" class="text-center">
+      <button id="destinationBtn" class="bg-blue-500 hover:bg-blue-600 text-white font-bold py-2 px-6 rounded-lg shadow mb-4">
+        行き先ルーレットを回す！
+      </button>
+      <div id="destinationResult" class="text-2xl font-semibold min-h-[3rem] flex items-center justify-center text-blue-700">
+        </div>
     </section>
 
-    <button id="shareBtn">
-      <img src="https://abs.twimg.com/favicons/twitter.2.ico" alt="X(Twitter)ロゴ"> 結果をシェア
-    </button>
+    <section id="weatherSection" class="hidden">
+        <h2 class="text-xl font-semibold mb-4 text-center text-slate-700">明日の天気予報</h2>
+        <div id="weatherResult" class="text-center text-lg text-slate-600 min-h-[3rem] flex items-center justify-center gap-2">
+            <span class="weather-icon weather-default"></span>
+            <span>天気情報を取得中...</span>
+        </div>
+    </section>
+
+    <section id="touristSection" class="hidden">
+        <h2 class="text-xl font-semibold mb-4 text-center text-slate-700">おすすめ観光スポット</h2>
+        <div id="touristSpots" class="text-center text-slate-600">
+            <ul id="spotsList" class="list-disc list-inside">
+                </ul>
+        </div>
+    </section>
+
+    <section id="diceSection" class="text-center">
+      <h2 class="text-xl font-semibold mb-4 text-slate-700">予算ダイスを回して！</h2>
+      <div class="mb-4 flex justify-center">
+          <img id="diceImage" src="dice-1.png" alt="サイコロ" width="100" height="100" class="rounded shadow">
+      </div>
+      <button id="rollDiceBtn" class="bg-amber-500 hover:bg-amber-600 text-white font-bold py-2 px-6 rounded-lg shadow mb-4">
+        予算ダイスを回す！
+      </button>
+      <div id="budgetResult" class="text-2xl font-semibold min-h-[3rem] flex items-center justify-center text-amber-700">
+        </div>
+    </section>
+
+    <section class="text-center mt-8">
+      <button id="shareBtn" class="bg-gray-700 hover:bg-gray-800 text-white font-bold py-2 px-5 rounded-lg shadow inline-flex items-center">
+        <img src="https://abs.twimg.com/favicons/twitter.2.ico" alt="X(Twitter)ロゴ" class="w-4 h-4 mr-2"> 結果をシェア
+      </button>
+    </section>
+
   </main>
 
-  <footer>
-    <small>&copy; 2025年ルーレット旅</small>
+  <footer class="text-center mt-12 text-slate-500 text-sm">
+    <small>&copy; 2025 ルーレット旅 NEXT</small>
   </footer>
+
+  <script type="module">
+    // --- Constants and Data ---
+
+    // 47都道府県リスト
+    const prefectures = [
+      "北海道", "青森県", "岩手県", "宮城県", "秋田県", "山形県", "福島県",
+      "茨城県", "栃木県", "群馬県", "埼玉県", "千葉県", "東京都", "神奈川県",
+      "新潟県", "富山県", "石川県", "福井県", "山梨県", "長野県",
+      "岐阜県", "静岡県", "愛知県", "三重県",
+      "滋賀県", "京都府", "大阪府", "兵庫県", "奈良県", "和歌山県",
+      "鳥取県", "島根県", "岡山県", "広島県", "山口県",
+      "徳島県", "香川県", "愛媛県", "高知県",
+      "福岡県", "佐賀県", "長崎県", "熊本県", "大分県", "宮崎県", "鹿児島県", "沖縄県"
+    ];
+
+    // 隣接県マップ（陸続きまたは主要な橋・トンネル接続を考慮）
+    const adjacentPrefectures = {
+      "北海道": ["青森県"],
+      "青森県": ["北海道", "秋田県", "岩手県"],
+      "岩手県": ["青森県", "秋田県", "宮城県"],
+      "宮城県": ["岩手県", "秋田県", "山形県", "福島県"], // 秋田追加
+      "秋田県": ["青森県", "岩手県", "宮城県", "山形県"], // 宮城追加
+      "山形県": ["秋田県", "宮城県", "福島県", "新潟県"],
+      "福島県": ["宮城県", "山形県", "栃木県", "群馬県", "茨城県", "新潟県"],
+      "茨城県": ["福島県", "栃木県", "埼玉県", "千葉県"],
+      "栃木県": ["福島県", "群馬県", "茨城県", "埼玉県"],
+      "群馬県": ["福島県", "栃木県", "埼玉県", "長野県", "新潟県"],
+      "埼玉県": ["群馬県", "栃木県", "茨城県", "千葉県", "東京都", "山梨県", "長野県"],
+      "千葉県": ["茨城県", "埼玉県", "東京都"], // 橋/トンネル考慮
+      "東京都": ["埼玉県", "千葉県", "神奈川県", "山梨県"],
+      "神奈川県": ["東京都", "山梨県", "静岡県"],
+      "新潟県": ["山形県", "福島県", "群馬県", "長野県", "富山県"], // 富山追加
+      "富山県": ["新潟県", "長野県", "岐阜県", "石川県"],
+      "石川県": ["富山県", "岐阜県", "福井県"],
+      "福井県": ["石川県", "岐阜県", "滋賀県", "京都府"], // 京都追加
+      "山梨県": ["静岡県", "神奈川県", "東京都", "埼玉県", "長野県"],
+      "長野県": ["新潟県", "群馬県", "埼玉県", "山梨県", "静岡県", "愛知県", "岐阜県", "富山県"], // 愛知、富山追加
+      "岐阜県": ["富山県", "石川県", "福井県", "滋賀県", "三重県", "愛知県", "長野県"], // 三重追加
+      "静岡県": ["山梨県", "神奈川県", "愛知県", "長野県"],
+      "愛知県": ["岐阜県", "静岡県", "三重県", "長野県"], // 長野追加
+      "三重県": ["滋賀県", "京都府", "奈良県", "愛知県", "岐阜県", "和歌山県"], // 京都、岐阜追加
+      "滋賀県": ["福井県", "岐阜県", "三重県", "京都府"],
+      "京都府": ["滋賀県", "福井県", "大阪府", "兵庫県", "奈良県", "三重県"], // 兵庫、三重追加
+      "大阪府": ["京都府", "兵庫県", "奈良県", "和歌山県"], // 和歌山追加
+      "兵庫県": ["京都府", "大阪府", "鳥取県", "岡山県", "香川県", "徳島県"], // 香川、徳島追加 (橋)
+      "奈良県": ["三重県", "京都府", "大阪府", "和歌山県"],
+      "和歌山県": ["三重県", "奈良県", "大阪府", "徳島県"], // 大阪、徳島追加 (海路考慮)
+      "鳥取県": ["兵庫県", "岡山県", "島根県", "広島県"], // 広島追加
+      "島根県": ["鳥取県", "広島県", "山口県"],
+      "岡山県": ["兵庫県", "鳥取県", "広島県", "香川県"], // 香川追加 (橋)
+      "広島県": ["岡山県", "鳥取県", "島根県", "山口県", "愛媛県"], // 鳥取、愛媛追加 (海路考慮)
+      "山口県": ["広島県", "島根県", "福岡県", "大分県"], // 大分追加 (海路考慮)
+      "徳島県": ["香川県", "愛媛県", "高知県", "兵庫県", "和歌山県"], // 愛媛、兵庫、和歌山追加 (橋/海路)
+      "香川県": ["徳島県", "愛媛県", "岡山県", "兵庫県"], // 岡山、兵庫追加 (橋)
+      "愛媛県": ["香川県", "徳島県", "高知県", "広島県", "大分県", "山口県"], // 広島、大分、山口追加 (海路考慮)
+      "高知県": ["徳島県", "愛媛県"],
+      "福岡県": ["山口県", "佐賀県", "熊本県", "大分県"], // 熊本追加
+      "佐賀県": ["福岡県", "長崎県"],
+      "長崎県": ["佐賀県", "熊本県"], // 熊本追加 (海路考慮)
+      "熊本県": ["福岡県", "佐賀県", "長崎県", "大分県", "宮崎県", "鹿児島県"], // 佐賀、長崎追加 (海路考慮)
+      "大分県": ["福岡県", "熊本県", "宮崎県", "山口県", "愛媛県"], // 山口、愛媛追加 (海路考慮)
+      "宮崎県": ["熊本県", "大分県", "鹿児島県"],
+      "鹿児島県": ["宮崎県", "熊本県", "沖縄県"], // 沖縄追加 (海路考慮)
+      "沖縄県": ["鹿児島県"] // (海路考慮)
+    };
+
+    // 都道府県名とSVG要素IDのマッピング
+    const prefectureIdMap = {
+      "北海道": "JP01", "青森県": "JP02", "岩手県": "JP03", "宮城県": "JP04", "秋田県": "JP05",
+      "山形県": "JP06", "福島県": "JP07", "茨城県": "JP08", "栃木県": "JP09", "群馬県": "JP10",
+      "埼玉県": "JP11", "千葉県": "JP12", "東京都": "JP13", "神奈川県": "JP14",
+      "新潟県": "JP15", "富山県": "JP16", "石川県": "JP17", "福井県": "JP18", "山梨県": "JP19",
+      "長野県": "JP20", "岐阜県": "JP21", "静岡県": "JP22", "愛知県": "JP23", "三重県": "JP24",
+      "滋賀県": "JP25", "京都府": "JP26", "大阪府": "JP27", "兵庫県": "JP28", "奈良県": "JP29",
+      "和歌山県": "JP30", "鳥取県": "JP31", "島根県": "JP32", "岡山県": "JP33", "広島県": "JP34",
+      "山口県": "JP35", "徳島県": "JP36", "香川県": "JP37", "愛媛県": "JP38", "高知県": "JP39",
+      "福岡県": "JP40", "佐賀県": "JP41", "長崎県": "JP42", "熊本県": "JP43", "大分県": "JP44",
+      "宮崎県": "JP45", "鹿児島県": "JP46", "沖縄県": "JP47"
+    };
+
+    // サンプル観光地データ (都道府県名をキーとする)
+    const touristData = {
+        "北海道": ["札幌時計台", "函館山", "富良野のラベンダー畑", "旭山動物園"],
+        "青森県": ["弘前城", "奥入瀬渓流", "ねぶたの家 ワ・ラッセ"],
+        "岩手県": ["中尊寺金色堂", "龍泉洞", "小岩井農場"],
+        "宮城県": ["松島", "瑞巌寺", "仙台城跡"],
+        "秋田県": ["角館武家屋敷", "田沢湖", "男鹿半島 (なまはげ館)"],
+        "山形県": ["山寺 (立石寺)", "銀山温泉", "蔵王の樹氷"],
+        "福島県": ["会津若松城 (鶴ヶ城)", "大内宿", "五色沼"],
+        "茨城県": ["偕楽園", "国営ひたち海浜公園", "袋田の滝"],
+        "栃木県": ["日光東照宮", "華厳の滝", "中禅寺湖"],
+        "群馬県": ["草津温泉", "富岡製糸場", "伊香保温泉"],
+        "埼玉県": ["川越 (蔵造りの町並み)", "鉄道博物館", "長瀞"],
+        "千葉県": ["東京ディズニーリゾート", "成田山新勝寺", "鴨川シーワールド"],
+        "東京都": ["浅草寺・雷門", "渋谷スクランブル交差点", "東京タワー", "新宿御苑"],
+        "神奈川県": ["箱根", "横浜中華街", "鎌倉 (大仏・鶴岡八幡宮)"],
+        "新潟県": ["佐渡島 (たらい舟)", "清津峡", "越後湯沢温泉"],
+        "富山県": ["立山黒部アルペンルート", "五箇山合掌造り集落", "黒部ダム"],
+        "石川県": ["兼六園", "ひがし茶屋街", "金沢21世紀美術館"],
+        "福井県": ["東尋坊", "福井県立恐竜博物館", "永平寺"],
+        "山梨県": ["富士山", "河口湖", "忍野八海"],
+        "長野県": ["善光寺", "松本城", "上高地"],
+        "岐阜県": ["白川郷", "飛騨高山 (古い町並)", "下呂温泉"],
+        "静岡県": ["富士山", "伊豆半島 (温泉・海岸)", "久能山東照宮"],
+        "愛知県": ["名古屋城", "熱田神宮", "トヨタ産業技術記念館"],
+        "三重県": ["伊勢神宮", "鳥羽水族館", "おかげ横丁"],
+        "滋賀県": ["琵琶湖", "彦根城", "比叡山延暦寺"],
+        "京都府": ["清水寺", "金閣寺", "伏見稲荷大社", "嵐山"],
+        "大阪府": ["大阪城", "道頓堀", "ユニバーサル・スタジオ・ジャパン"],
+        "兵庫県": ["姫路城", "神戸港 (メリケンパーク・ハーバーランド)", "有馬温泉"],
+        "奈良県": ["東大寺 (大仏)", "奈良公園 (鹿)", "法隆寺"],
+        "和歌山県": ["高野山", "熊野古道", "アドベンチャーワールド"],
+        "鳥取県": ["鳥取砂丘", "水木しげるロード", "三徳山三佛寺投入堂"],
+        "島根県": ["出雲大社", "松江城", "石見銀山"],
+        "岡山県": ["岡山後楽園", "倉敷美観地区", "岡山城"],
+        "広島県": ["厳島神社", "原爆ドーム・平和記念公園", "尾道"],
+        "山口県": ["角島大橋", "元乃隅神社", "秋芳洞"],
+        "徳島県": ["鳴門の渦潮", "大歩危・小歩危", "阿波おどり会館"],
+        "香川県": ["金刀比羅宮", "栗林公園", "直島 (アート)"],
+        "愛媛県": ["道後温泉", "松山城", "しまなみ海道"],
+        "高知県": ["桂浜", "四万十川", "高知城"],
+        "福岡県": ["太宰府天満宮", "博多 (屋台・中洲)", "門司港レトロ"],
+        "佐賀県": ["吉野ヶ里歴史公園", "嬉野温泉", "有田焼 (陶山神社)"],
+        "長崎県": ["グラバー園", "平和公園", "ハウステンボス"],
+        "熊本県": ["熊本城", "阿蘇山", "黒川温泉"],
+        "大分県": ["別府温泉 (地獄めぐり)", "由布院温泉", "宇佐神宮"],
+        "宮崎県": ["高千穂峡", "青島神社", "サンメッセ日南"],
+        "鹿児島県": ["桜島", "屋久島", "指宿温泉 (砂むし風呂)"],
+        "沖縄県": ["沖縄美ら海水族館", "首里城公園", "国際通り"]
+    };
+
+    // --- DOM Elements ---
+    const startPrefSelect = document.getElementById('startPref');
+    const destinationBtn = document.getElementById('destinationBtn');
+    const destinationResultDiv = document.getElementById('destinationResult');
+    const mapContainer = document.getElementById('mapContainer');
+    const diceImage = document.getElementById('diceImage');
+    const rollDiceBtn = document.getElementById('rollDiceBtn');
+    const budgetResultDiv = document.getElementById('budgetResult');
+    const shareBtn = document.getElementById('shareBtn');
+    const weatherSection = document.getElementById('weatherSection');
+    const weatherResultDiv = document.getElementById('weatherResult');
+    const touristSection = document.getElementById('touristSection');
+    const spotsListUl = document.getElementById('spotsList');
+
+    // --- State Variables ---
+    let currentDestination = null;
+    let currentBudget = null;
+    let currentStartPref = null;
+    let diceAnimationInterval = null;
+    let isRollingDice = false;
+
+    // --- Initialization ---
+
+    // Populate start prefecture dropdown
+    prefectures.forEach(pref => {
+      const option = document.createElement('option');
+      option.value = pref;
+      option.textContent = pref;
+      startPrefSelect.appendChild(option);
+    });
+    // Set default start prefecture (e.g., Tokyo or first in list)
+    currentStartPref = prefectures[12]; // Tokyo
+    startPrefSelect.value = currentStartPref;
+
+
+    // Load SVG Map
+    fetch('japan-map.svg')
+      .then(response => {
+          if (!response.ok) {
+              throw new Error(`HTTP error! status: ${response.status}`);
+          }
+          return response.text();
+      })
+      .then(svgText => {
+        // Wrap SVG to control styling and prevent layout shifts
+        const wrapper = document.createElement('div');
+        wrapper.className = 'svg-wrapper';
+        wrapper.innerHTML = svgText;
+        mapContainer.innerHTML = ''; // Clear loading message
+        mapContainer.appendChild(wrapper);
+
+        // Add click event listeners to map paths/circles after loading
+        setupMapClickListeners();
+        // Highlight initial start prefecture
+        highlightPrefecture(currentStartPref, 'start-prefecture');
+      })
+      .catch(error => {
+          console.error('Error loading SVG map:', error);
+          mapContainer.innerHTML = '<p class="text-red-500 text-center">地図の読み込みに失敗しました。</p>';
+      });
+
+    // --- Event Listeners ---
+
+    // Start prefecture selection change
+    startPrefSelect.addEventListener('change', (e) => {
+        currentStartPref = e.target.value;
+        highlightPrefecture(currentStartPref, 'start-prefecture'); // Highlight new start point
+        // Reset destination and other results if start changes
+        resetResults();
+    });
+
+    // Destination Roulette Button
+    destinationBtn.addEventListener('click', () => {
+      const start = startPrefSelect.value;
+      if (!start) {
+          alert('まずスタート地点を選んでください！');
+          return;
+      }
+      // Filter out the starting prefecture itself
+      const candidates = (adjacentPrefectures[start] || prefectures).filter(p => p !== start);
+      if (candidates.length === 0) {
+          // Handle cases like isolated islands if necessary, or just use all prefectures
+          candidates = prefectures.filter(p => p !== start);
+      }
+
+      const randomIndex = Math.floor(Math.random() * candidates.length);
+      currentDestination = candidates[randomIndex];
+
+      destinationResultDiv.textContent = `次の行き先は「${currentDestination}」！`;
+      highlightPrefecture(currentDestination, 'highlighted-prefecture'); // Highlight destination
+      fetchWeather(currentDestination); // Fetch weather for the destination
+      displayTouristSpots(currentDestination); // Show tourist spots
+      weatherSection.classList.remove('hidden'); // Show weather section
+      touristSection.classList.remove('hidden'); // Show tourist section
+    });
+
+    // Budget Dice Roll Button
+    rollDiceBtn.addEventListener('click', () => {
+        if (isRollingDice) return; // Prevent multiple rolls at once
+        isRollingDice = true;
+        rollDiceBtn.disabled = true; // Disable button during roll
+        diceImage.classList.add('dice-rolling'); // Add rolling animation class
+        budgetResultDiv.textContent = '運命のダイスロール...！';
+
+        let rollCount = 0;
+        const maxRolls = 20; // Number of quick changes for animation
+        const rollInterval = 100; // ms between changes
+
+        diceAnimationInterval = setInterval(() => {
+            const randomFace = Math.floor(Math.random() * 6) + 1;
+            diceImage.src = `dice-${randomFace}.png`;
+            rollCount++;
+            if (rollCount >= maxRolls) {
+                clearInterval(diceAnimationInterval);
+                finalizeDiceRoll();
+            }
+        }, rollInterval);
+    });
+
+    // Share Button
+    shareBtn.addEventListener('click', () => {
+        let text = "ルーレット旅！";
+        if (currentDestination) {
+            text += ` 次の行き先は「${currentDestination}」！`;
+        }
+        if (currentBudget) {
+             text += ` 次の日の予算は ${currentBudget}円！`;
+        }
+        text += " #ルーレット旅NEXT"; // Add hashtag
+
+        const url = encodeURIComponent(window.location.href); // Share the current page URL
+        const shareURL = `https://twitter.com/intent/tweet?text=${encodeURIComponent(text)}&url=${url}`;
+        window.open(shareURL, '_blank');
+    });
+
+    // --- Functions ---
+
+    // Add click listeners to SVG map elements
+    function setupMapClickListeners() {
+        mapContainer.querySelectorAll('path, circle').forEach(el => {
+            el.addEventListener('click', (e) => {
+                const clickedId = e.target.id || (e.target.parentNode && e.target.parentNode.id); // Handle clicks on text within path sometimes
+                const prefName = Object.keys(prefectureIdMap).find(name => prefectureIdMap[name] === clickedId);
+                if (prefName) {
+                    startPrefSelect.value = prefName;
+                    // Manually trigger the change event to update state and highlight
+                    startPrefSelect.dispatchEvent(new Event('change'));
+                }
+            });
+        });
+    }
+
+    // Finalize the dice roll after animation
+    function finalizeDiceRoll() {
+        const finalDiceValue = Math.floor(Math.random() * 6) + 1;
+        currentBudget = finalDiceValue * 10000;
+
+        diceImage.src = `dice-${finalDiceValue}.png`; // Set final image
+        diceImage.classList.remove('dice-rolling'); // Remove animation class
+        budgetResultDiv.textContent = `次の日の予算は ${currentBudget.toLocaleString()}円だよ！`; // Display result immediately
+        isRollingDice = false; // Re-enable rolling
+        rollDiceBtn.disabled = false; // Re-enable button
+    }
+
+    // Highlight prefecture on the map
+    function highlightPrefecture(prefectureName, highlightClass) {
+        const prefId = prefectureIdMap[prefectureName];
+        if (!prefId) return;
+
+        // Remove existing highlights of the same type, except for start-prefecture
+        document.querySelectorAll(`.${highlightClass}:not(.start-prefecture)`).forEach(el => {
+             if (highlightClass !== 'start-prefecture' || el.id !== prefectureIdMap[currentStartPref]) {
+                el.classList.remove(highlightClass);
+                // Reset fill if it's not the start prefecture
+                if (el.id !== prefectureIdMap[currentStartPref]) {
+                   el.style.fill = ''; // Reset to default CSS fill
+                }
+             }
+        });
+         // Remove start-prefecture highlight if a new start is selected
+         if (highlightClass === 'start-prefecture') {
+            document.querySelectorAll('.start-prefecture').forEach(el => {
+                if (el.id !== prefId) {
+                    el.classList.remove('start-prefecture');
+                    el.style.fill = ''; // Reset fill
+                }
+            });
+         }
+
+
+        const selectedElement = mapContainer.querySelector(`#${prefId}`);
+        if (selectedElement) {
+            selectedElement.classList.add(highlightClass);
+            // Ensure start prefecture color overrides destination if they are the same
+            if (highlightClass === 'start-prefecture') {
+                 selectedElement.style.fill = '#f59e0b'; // Amber-500
+            } else if (!selectedElement.classList.contains('start-prefecture')) {
+                 selectedElement.style.fill = '#3b82f6'; // Blue-500
+            }
+        } else {
+            console.warn(`Element with ID ${prefId} not found in SVG.`);
+        }
+    }
+
+    // Fetch and display weather (Placeholder)
+    function fetchWeather(prefectureName) {
+        weatherResultDiv.innerHTML = '<span class="weather-icon weather-default"></span><span>天気情報を取得中...</span>'; // Show loading state
+
+        // --- !!! API Integration Point !!! ---
+        // Replace this setTimeout with an actual fetch call to a weather API
+        // Example using OpenWeatherMap (requires API key and setup):
+        // const apiKey = 'YOUR_API_KEY';
+        // const url = `https://api.openweathermap.org/data/2.5/weather?q=${prefectureName},JP&appid=${apiKey}&units=metric&lang=ja`;
+        // fetch(url)
+        //   .then(response => response.json())
+        //   .then(data => {
+        //     const weather = data.weather[0].description;
+        //     const temp = data.main.temp;
+        //     const iconCode = data.weather[0].icon; // Use this for specific icons
+        //     // Determine weather class based on description/iconCode
+        //     let weatherClass = 'weather-default';
+        //     if (iconCode.includes('01')) weatherClass = 'weather-sunny';
+        //     else if (iconCode.includes('02') || iconCode.includes('03') || iconCode.includes('04')) weatherClass = 'weather-cloudy';
+        //     else if (iconCode.includes('09') || iconCode.includes('10') || iconCode.includes('11')) weatherClass = 'weather-rainy';
+        //     else if (iconCode.includes('13')) weatherClass = 'weather-snowy';
+        //
+        //     weatherResultDiv.innerHTML = `<span class="weather-icon ${weatherClass}"></span> ${weather} / ${Math.round(temp)}℃`;
+        //   })
+        //   .catch(error => {
+        //      console.error('Error fetching weather:', error);
+        //      weatherResultDiv.innerHTML = '<span class="weather-icon weather-default"></span> 天気情報の取得に失敗しました';
+        //   });
+        // --------------------------------------
+
+        // Placeholder implementation:
+        setTimeout(() => {
+            const dummyWeather = ["sunny", "cloudy", "rainy", "snowy"];
+            const randomWeather = dummyWeather[Math.floor(Math.random() * dummyWeather.length)];
+            const randomTemp = Math.floor(Math.random() * 25) + 5; // Random temp between 5 and 30
+            let weatherText = "晴れ";
+            let weatherClass = "weather-sunny";
+
+            switch (randomWeather) {
+                case "cloudy":
+                    weatherText = "くもり";
+                    weatherClass = "weather-cloudy";
+                    break;
+                case "rainy":
+                    weatherText = "雨";
+                    weatherClass = "weather-rainy";
+                    break;
+                 case "snowy":
+                    weatherText = "雪";
+                    weatherClass = "weather-snowy";
+                    break;
+            }
+            weatherResultDiv.innerHTML = `<span class="weather-icon ${weatherClass}"></span> ${weatherText} / 予想気温 ${randomTemp}℃`;
+        }, 1000); // Simulate network delay
+    }
+
+    // Display tourist spots
+    function displayTouristSpots(prefectureName) {
+        spotsListUl.innerHTML = ''; // Clear previous list
+        const spots = touristData[prefectureName] || ["情報が見つかりませんでした"];
+        const spotsToShow = spots.slice(0, 4); // Show up to 4 spots
+
+        spotsToShow.forEach(spot => {
+            const li = document.createElement('li');
+            li.textContent = spot;
+            li.classList.add('mb-1'); // Add some spacing
+            spotsListUl.appendChild(li);
+        });
+        touristSection.classList.remove('hidden');
+    }
+
+    // Reset results when start prefecture changes
+    function resetResults() {
+        currentDestination = null;
+        currentBudget = null;
+        destinationResultDiv.textContent = '';
+        budgetResultDiv.textContent = '';
+        weatherSection.classList.add('hidden');
+        touristSection.classList.add('hidden');
+        weatherResultDiv.innerHTML = '';
+        spotsListUl.innerHTML = '';
+        // Reset map highlights except for the new start prefecture
+        document.querySelectorAll('#mapContainer path.highlighted-prefecture, #mapContainer circle.highlighted-prefecture').forEach(el => {
+             el.classList.remove('highlighted-prefecture');
+             if (!el.classList.contains('start-prefecture')) {
+                 el.style.fill = ''; // Reset fill only if it's not the start prefecture
+             }
+        });
+    }
+
+  </script>
 </body>
 </html>
