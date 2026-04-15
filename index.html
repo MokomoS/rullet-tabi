@@ -536,7 +536,7 @@
         // --- !!! API Integration Point !!! ---
         // Replace this setTimeout with an actual fetch call to a weather API
         // Example using OpenWeatherMap (requires API key and setup):
-        const apiKey = 0db7274b7abf5a6db8875b8185916e7d;
+        const apiKey = '0db7274b7abf5a6db8875b8185916e7d';
         const url = `https://api.openweathermap.org/data/2.5/weather?q=${prefectureName},JP&appid=${apiKey}&units=metric&lang=ja`;
         fetch(url)
         .then(response => response.json())
