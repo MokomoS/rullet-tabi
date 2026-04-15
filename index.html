@@ -305,7 +305,11 @@
         "山形県": ["山寺 (立石寺)", "銀山温泉", "蔵王の樹氷"],
         "福島県": ["会津若松城 (鶴ヶ城)", "大内宿", "五色沼"],
         "茨城県": ["偕楽園", "国営ひたち海浜公園", "袋田の滝"],
-        "栃木県": ["日光東照宮", "華厳の滝", "中禅寺湖"],
+        "栃木県": [
+            { name: "日光東照宮", description: "徳川家康を祀る世界遺産。豪華絢爛な「陽明門」や「見ざる言わざる聞かざる」の彫刻が有名です。" },
+            { name: "那須ハイランドパーク", description: "那須高原の大自然に囲まれた東日本最大級の遊園地。40種類以上のアトラクションが楽しめます。" },
+            { name: "あしかがフラワーパーク", description: "樹齢150年におよぶ大藤の棚が圧巻。冬のイルミネーションは日本三大イルミネーションの一つです。" }
+        ],
         "群馬県": ["草津温泉", "富岡製糸場", "伊香保温泉"],
         "埼玉県": ["川越 (蔵造りの町並み)", "鉄道博物館", "長瀞"],
         "千葉県": ["東京ディズニーリゾート", "成田山新勝寺", "鴨川シーワールド"],
@@ -536,7 +540,6 @@
             });
          }
 
-
         const selectedElement = mapContainer.querySelector(`#${prefId}`);
         if (selectedElement) {
             selectedElement.classList.add(highlightClass);
@@ -614,18 +617,50 @@
 
     // Display tourist spots
     function displayTouristSpots(prefectureName) {
-        spotsListUl.innerHTML = ''; // Clear previous list
+        spotsListUl.innerHTML = ''; // リストを空にする
         const spots = touristData[prefectureName] || ["情報が見つかりませんでした"];
-        const spotsToShow = spots.slice(0, 4); // Show up to 4 spots
-
-        spotsToShow.forEach(spot => {
+        
+        spots.slice(0, 4).forEach(spot => {
             const li = document.createElement('li');
-            li.textContent = spot;
-            li.classList.add('mb-1'); // Add some spacing
+            // クリックできることがわかるようにデザインを調整
+            li.className = "mb-2 p-3 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all text-left list-none";
+            
+            // データがオブジェクトか文字列かで表示を分ける
+            const spotName = typeof spot === 'object' ? spot.name : spot;
+            li.innerHTML = `<span class="text-blue-600 font-medium">📍 ${spotName}</span>`;
+
+            // データがオブジェクト（概要がある）場合のみクリックイベントを追加
+            if (typeof spot === 'object') {
+                li.onclick = () => openSpotModal(spotName, prefectureName);
+            } else {
+                // 概要がない場合は「準備中」と出すか、クリック不可にする
+                li.onclick = () => alert(spotName + "の詳細情報は現在準備中です！");
+            }
+
             spotsListUl.appendChild(li);
         });
         touristSection.classList.remove('hidden');
     }
+
+      // 2. モーダルを開く関数
+    function openSpotModal(spotName, prefName) {
+        const spot = touristData[prefName].find(s => s.name === spotName);
+        const content = document.getElementById('spotDetailContent');
+        
+        content.innerHTML = `
+            <h3 class="text-2xl font-bold text-blue-700 mb-2">${spot.name}</h3>
+            <p class="text-sm text-slate-500 mb-4">📍 ${prefName}の観光スポット</p>
+            <p class="text-slate-700 leading-relaxed">${spot.description || '詳細情報は準備中です。'}</p>
+        `;
+        
+        document.getElementById('spotModal').classList.remove('hidden');
+    }
+    
+    // 3. モーダルを閉じる関数
+    function closeSpotModal() {
+        document.getElementById('spotModal').classList.add('hidden');
+    }
+    window.closeSpotModal = closeSpotModal;
 
     // Reset results when start prefecture changes
     function resetResults() {
