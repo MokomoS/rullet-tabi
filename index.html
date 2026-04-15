@@ -527,37 +527,37 @@
     }
 
     // Fetch and display weather (Placeholder)
-    function fetchWeather(prefectureName) {
-        weatherResultDiv.innerHTML = '<span class="weather-icon weather-default"></span><span>天気情報を取得中...</span>'; // Show loading state
-    // Fetch and display weather (Placeholder)
-    function fetchWeather(prefectureName) {
-        weatherResultDiv.innerHTML = '<span class="weather-icon weather-default"></span><span>天気情報を取得中...</span>'; // Show loading state
+function fetchWeather(prefectureName) {
+    // 1. HTML内の表示場所を特定（IDはご自身のHTMLに合わせてください）
+    const weatherResultDiv = document.getElementById('weather-result'); 
+    if (!weatherResultDiv) return;
 
-        // --- !!! API Integration Point !!! ---
-        // Replace this setTimeout with an actual fetch call to a weather API
-        // Example using OpenWeatherMap (requires API key and setup):
-        const apiKey = '0db7274b7abf5a6db8875b8185916e7d';
-        const url = `https://api.openweathermap.org/data/2.5/weather?q=${prefectureName},JP&appid=${apiKey}&units=metric&lang=ja`;
-        fetch(url)
+    weatherResultDiv.innerHTML = '<span>天気を取得中...</span>';
+
+    const apiKey = '0db7274b7abf5a6db8875b8185916e7d'; 
+    // prefectureName（例: "東京都"）から「明日」の予報を取得
+    const url = `https://api.openweathermap.org/data/2.5/forecast?q=${prefectureName.replace(/[都府県]/g, '')},JP&appid=${apiKey}&units=metric&lang=ja`;
+
+    fetch(url)
         .then(response => response.json())
         .then(data => {
-        const weather = data.weather[0].description;
-        const temp = data.main.temp;
-        const iconCode = data.weather[0].icon; // Use this for specific icons
-        // Determine weather class based on description/iconCode
-        let weatherClass = 'weather-default';
-        if (iconCode.includes('01')) weatherClass = 'weather-sunny';
-        else if (iconCode.includes('02') || iconCode.includes('03') || iconCode.includes('04')) weatherClass = 'weather-cloudy';
-        else if (iconCode.includes('09') || iconCode.includes('10') || iconCode.includes('11')) weatherClass = 'weather-rainy';
-        else if (iconCode.includes('13')) weatherClass = 'weather-snowy';
-        
-        weatherResultDiv.innerHTML = `<span class="weather-icon ${weatherClass}"></span> ${weather} / ${Math.round(temp)}℃`;
+            // 明日の昼頃のデータ（list[8]付近）を取得
+            const forecast = data.list[8] || data.list[0];
+            const weather = forecast.weather[0].description;
+            const temp = Math.round(forecast.main.temp);
+            const icon = forecast.weather[0].icon;
+
+            weatherResultDiv.innerHTML = `
+                <div class="flex items-center justify-center gap-2">
+                    <img src="https://openweathermap.org/img/wn/${icon}@2x.png" width="40">
+                    <span>明日の天気: ${weather} / ${temp}℃</span>
+                </div>`;
         })
         .catch(error => {
-        console.error('Error fetching weather:', error);
-        weatherResultDiv.innerHTML = '<span class="weather-icon weather-default"></span> 天気情報の取得に失敗しました';
+            console.error('Weather Error:', error);
+            weatherResultDiv.innerHTML = '<span>天気情報が取得できませんでした</span>';
         });
-    }
+} // ← 必ずここで関数を閉じる！
 
     // Display tourist spots
     function displayTouristSpots(prefectureName) {
