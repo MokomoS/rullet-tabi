@@ -527,13 +527,11 @@
     }
 
     // Fetch and display weather (Placeholder)
-    function fetchWeather(prefectureName) {
-        const weatherResultDiv = document.getElementById('weatherResult'); 
-        if (!weatherResultDiv) return;
-    
+    async function fetchWeather(prefectureName) {
+        const weatherResultDiv = document.getElementById('weatherResult');
         weatherResultDiv.innerHTML = '<span>天気を取得中...</span>';
     
-        // 都道府県名から代表的な都市名（英名）への変換マップ
+        // 都道府県名から確実なCity名（県庁所在地など）へ変換
         const cityMap = {
             "北海道": "Sapporo", "青森県": "Aomori", "岩手県": "Morioka", "宮城県": "Sendai", "秋田県": "Akita",
             "山形県": "Yamagata", "福島県": "Fukushima", "茨城県": "Mito", "栃木県": "Utsunomiya", "群馬県": "Maebashi",
@@ -547,31 +545,30 @@
             "宮崎県": "Miyazaki", "鹿児島県": "Kagoshima", "沖縄県": "Naha"
         };
     
-        const city = cityMap[prefectureName] || "Tokyo"; // 見つからなければ東京
-        const apiKey = '0db7274b7abf5a6db8875b8185916e7d'; 
+        const city = cityMap[prefectureName] || "Tokyo"; // 見つからない時のバックアップ
+        const apiKey = '0db7274b7abf5a6db8875b8185916e7d';
+        
+        // 都市名を指定してリクエスト
         const url = `https://api.openweathermap.org/data/2.5/forecast?q=${city},JP&appid=${apiKey}&units=metric&lang=ja`;
     
-        fetch(url)
-            .then(response => {
-                if (!response.ok) throw new Error('API response was not ok');
-                return response.json();
-            })
-            .then(data => {
-                const forecast = data.list[8] || data.list[0];
-                const weather = forecast.weather[0].description;
-                const temp = Math.round(forecast.main.temp);
-                const icon = forecast.weather[0].icon;
+        try {
+            const response = await fetch(url);
+            if (!response.ok) throw new Error('Network error');
+            const data = await response.json();
+            
+            const forecast = data.list[8] || data.list[0];
+            const weather = forecast.weather[0].description;
+            const temp = Math.round(forecast.main.temp);
+            const icon = forecast.weather[0].icon;
     
-                weatherResultDiv.innerHTML = `
-                    <div class="flex items-center justify-center gap-2">
-                        <img src="https://openweathermap.org/img/wn/${icon}@2x.png" width="40" height="40">
-                        <span>明日の天気: ${weather} / ${temp}℃</span>
-                    </div>`;
-            })
-            .catch(error => {
-                console.error('Weather Error:', error);
-                weatherResultDiv.innerHTML = '<span>天気情報が取得できませんでした</span>';
-            });
+            weatherResultDiv.innerHTML = `
+                <div class="flex items-center justify-center gap-2">
+                    <img src="https://openweathermap.org/img/wn/${icon}@2x.png" width="40">
+                    <span>明日の天気: ${weather} / ${temp}℃</span>
+                </div>`;
+        } catch (error) {
+            weatherResultDiv.innerHTML = '<span>天気情報が取得できませんでした</span>';
+        }
     }
 
     // Display tourist spots
