@@ -167,6 +167,8 @@
       </button>
       <div id="destinationResult" class="text-2xl font-semibold min-h-[3rem] flex items-center justify-center text-blue-700">
         </div>
+      <div id="mapLinkArea" class="hidden mt-4 px-4">
+        </div>
     </section>
 
     <section id="weatherSection" class="hidden">
@@ -432,6 +434,7 @@
       highlightPrefecture(currentDestination, 'highlighted-prefecture'); // Highlight destination
       fetchWeather(currentDestination); // Fetch weather for the destination
       displayTouristSpots(currentDestination); // Show tourist spots
+      updateMapLink(start, currentDestination); // Show Route section
       weatherSection.classList.remove('hidden'); // Show weather section
       touristSection.classList.remove('hidden'); // Show tourist section
     });
@@ -587,6 +590,22 @@
         } catch (error) {
             weatherResultDiv.innerHTML = '<span>天気情報が取得できませんでした</span>';
         }
+    }
+
+    function updateMapLink(start, dest) {
+    const mapLinkArea = document.getElementById('mapLinkArea');
+    if (!mapLinkArea) return;
+
+    // Googleマップのルート検索URL（出発地と目的地をセット）
+    const mapUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(start)}&destination=${encodeURIComponent(dest)}&travelmode=driving`;
+    
+    mapLinkArea.innerHTML = `
+        <a href="${mapUrl}" target="_blank" class="inline-flex items-center justify-center bg-white border-2 border-blue-500 text-blue-600 hover:bg-blue-50 font-bold py-2 px-6 rounded-full shadow-sm transition-all duration-200 text-sm md:text-base">
+            <span class="mr-2">🗺️</span> Googleマップでルートを確認
+        </a>
+        <p class="text-[10px] text-slate-400 mt-2">※別タブでGoogleマップが開きます</p>
+    `;
+    mapLinkArea.classList.remove('hidden');
     }
 
     // Display tourist spots
