@@ -802,24 +802,30 @@
     // Display tourist spots
     function displayTouristSpots(prefectureName) {
         spotsListUl.innerHTML = ''; // リストを空にする
-        const spots = touristData[prefectureName] || ["情報が見つかりませんでした"];
-        
+        const spots = touristData[prefectureName] || [];
+
+        if (spots.length === 0) {
+            spotsListUl.innerHTML = '<li class="text-slate-400">情報が見つかりませんでした</li>';
+            return;
+        }
+
         spots.slice(0, 4).forEach(spot => {
             const li = document.createElement('li');
-            // クリックできることがわかるようにデザインを調整
-            li.className = "mb-2 p-3 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all text-left list-none";
+            li.className = "mb-2 p-3 bg-slate-50 border border-slate-200 rounded-lg cursor-pointer hover:bg-blue-50 hover:border-blue-300 transition-all text-left list-none shadow-sm";
             
-            // データがオブジェクトか文字列かで表示を分ける
-            const spotName = typeof spot === 'object' ? spot.name : spot;
-            li.innerHTML = `<span class="text-blue-600 font-medium">📍 ${spotName}</span>`;
+            // ★ここがポイント：データがオブジェクト形式であることを前提に処理します
+            const spotName = spot.name || spot; 
+            li.innerHTML = `<span class="text-blue-600 font-bold">📍 ${spotName}</span>`;
 
-            // データがオブジェクト（概要がある）場合のみクリックイベントを追加
-            if (typeof spot === 'object') {
-                li.onclick = () => openSpotModal(spotName, prefectureName);
-            } else {
-                // 概要がない場合は「準備中」と出すか、クリック不可にする
-                li.onclick = () => alert(spotName + "の詳細情報は現在準備中です！");
-            }
+            // クリック時にモーダルを開く
+            li.onclick = () => {
+                // spotがオブジェクトなら詳細を開く、文字列ならそのまま名前を表示
+                if (spot.description) {
+                    openSpotModal(spotName, prefectureName);
+                } else {
+                    alert(`${spotName}の詳細情報は準備中です！`);
+                }
+            };
 
             spotsListUl.appendChild(li);
         });
