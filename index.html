@@ -857,12 +857,9 @@
                 action: () => {
                     const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
                     
-                    // 1. まず「楽天トラベル内の目的地検索結果」のURLを作る
-                    // ※ index_html よりも直接サーチを叩く方が安定します
-                    const targetUrl = `https://search.travel.rakuten.co.jp/ds/vacant/searchVacant?f_query=${encodeURIComponent(prefectureName)}`;
-                    
-                    // 2. 楽天アフィリエイトの「自動リンク作成」の形式を簡略化して適用
-                    // このURL形式なら、楽天市場に飛ばされるのを防げます
+                    // 楽天トラベルの検索結果に直接アフィリエイトIDを付与する一番シンプルな形式
+                    // これなら楽天市場に飛ばされるリスクを最小限に抑えられます
+                    const targetUrl = `https://travel.rakuten.co.jp/index_html?f_query=${encodeURIComponent(prefectureName)}`;
                     const finalUrl = `https://hb.afl.rakuten.co.jp/hgc/ra/travel/?pc=${encodeURIComponent(targetUrl)}&linkCode=hy2&id=${affId}`;
                     
                     window.open(finalUrl, '_blank');
