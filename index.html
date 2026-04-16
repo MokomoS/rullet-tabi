@@ -829,6 +829,60 @@
 
             spotsListUl.appendChild(li);
         });
+        // ★★★ ここに以下のコードを貼り付けてください ★★★
+
+        // 1. 既存の予約セクションがあれば一旦削除（二重表示を防止）
+        const existingActionSection = document.getElementById('travel-action-section');
+        if (existingActionSection) existingActionSection.remove();
+
+        // 2. 予約・準備セクションのコンテナ作成
+        const actionSection = document.createElement('div');
+        actionSection.id = 'travel-action-section';
+        // デザイン：観光スポットの下に馴染むように薄い青背景に
+        actionSection.className = "mt-6 p-4 bg-blue-50 border border-blue-100 rounded-xl text-center";
+
+        const actionTitle = document.createElement('p');
+        actionTitle.className = "text-sm font-bold text-blue-800 mb-3";
+        actionTitle.innerText = "✨ この旅の準備を始める";
+        actionSection.appendChild(actionTitle);
+
+        const buttonContainer = document.createElement('div');
+        buttonContainer.className = "flex flex-wrap justify-center gap-2";
+
+        // 3. ボタンの定義（URLに県名を自動挿入）
+        const actions = [
+            { 
+                label: "ホテルを探す", 
+                icon: "🏨", 
+                url: `https://search.travel.rakuten.co.jp/ds/vacant/searchVacant?f_query=${encodeURIComponent(prefectureName)}` 
+            },
+            { 
+                label: "レンタカー", 
+                icon: "🚗", 
+                url: `https://www.google.com/search?q=${encodeURIComponent(prefectureName)}+レンタカー+予約` 
+            },
+            { 
+                label: "ルートを保存", 
+                icon: "📍", 
+                action: () => { alert("ブラウザの「ブックマーク」や「共有」から結果を保存しましょう！"); } 
+            }
+        ];
+
+        actions.forEach(item => {
+            const btn = document.createElement('a');
+            btn.className = "flex items-center bg-white border border-blue-200 px-3 py-2 rounded-full text-xs font-semibold text-blue-700 shadow-sm hover:bg-blue-100 transition-colors cursor-pointer";
+            btn.innerHTML = `<span class="mr-1">${item.icon}</span> ${item.label}`;
+            if (item.url) { btn.href = item.url; btn.target = "_blank"; } 
+            else if (item.action) { btn.onclick = item.action; }
+            buttonContainer.appendChild(btn);
+        });
+
+        actionSection.appendChild(buttonContainer);
+        
+        // 4. 最後に観光セクションの中に追加
+        touristSection.appendChild(actionSection);
+
+        // ★★★ 貼り付けここまで ★★★
         touristSection.classList.remove('hidden');
     }
 
