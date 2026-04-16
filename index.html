@@ -857,12 +857,11 @@
                 action: () => {
                     const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
                     
-                    // 1. 遷移先（楽天トラベルの検索結果）URL
-                    // パラメータを最小限にし、URL全体を強力にエンコードします
-                    const targetUrl = `https://travel.rakuten.co.jp/index_html?f_query=${prefectureName}`;
+                    // 現在の楽天トラベル検索エンジンが確実に反応するクエリ構造
+                    // keyword検索を確実に実行させるためのパラメータ構成です
+                    const targetUrl = `https://search.travel.rakuten.co.jp/ds/hotellist/search?f_query=${encodeURIComponent(prefectureName)}&f_search_from=top`;
                     
-                    // 2. 楽天アフィリエイト公式の「サーチ連携」用ベースURL
-                    // m=p（楽天市場）ではなく m=tr（楽天トラベル）を明示的に指定
+                    // 楽天アフィリエイトゲートウェイ
                     const finalUrl = `https://hb.afl.rakuten.co.jp/hgc/ra/travel/?pc=${encodeURIComponent(targetUrl)}&linkCode=hy2&id=${affId}`;
                     
                     window.open(finalUrl, '_blank');
