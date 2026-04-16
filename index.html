@@ -854,16 +854,16 @@
             { 
                 label: "ホテルを探す", 
                 icon: "🏨", 
-                // 楽天トラベルキーワード検索APIを利用したアフィリエイトリンク
                 action: () => {
-                    const appId = '37e639f8-ef63-4ba0-90ba-a851ce44ca23'; // 書き換えてください
-                    const affId = '52e959bc.15d9121a.52e959bd.aefd9435'; // 書き換えてください
+                    const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
                     
-                    // 直接検索結果ページへ飛ばすアフィリエイトリンクURLの構成
-                    // travel.rakuten.co.jp の検索結果にアフィリエイトIDを紐付けます
-                    const baseUrl = "https://hb.afl.rakuten.co.jp/hgc/ra/travel/";
-                    const targetUrl = `https://travel.rakuten.co.jp/index_html?f_query=${encodeURIComponent(prefectureName)}`;
-                    const finalUrl = `${baseUrl}?pc=${encodeURIComponent(targetUrl)}&linkCode=hy2&id=${affId}`;
+                    // 1. まず「楽天トラベル内の目的地検索結果」のURLを作る
+                    // ※ index_html よりも直接サーチを叩く方が安定します
+                    const targetUrl = `https://search.travel.rakuten.co.jp/ds/vacant/searchVacant?f_query=${encodeURIComponent(prefectureName)}`;
+                    
+                    // 2. 楽天アフィリエイトの「自動リンク作成」の形式を簡略化して適用
+                    // このURL形式なら、楽天市場に飛ばされるのを防げます
+                    const finalUrl = `https://hb.afl.rakuten.co.jp/hgc/ra/travel/?pc=${encodeURIComponent(targetUrl)}&linkCode=hy2&id=${affId}`;
                     
                     window.open(finalUrl, '_blank');
                 }
@@ -877,9 +877,8 @@
                 label: "ルートを確認", 
                 icon: "🗺️", 
                 action: () => {
-                    const start = selectedPrefecture || "";
+                    const start = currentStartPref || ""; // currentStartPref に修正
                     const goal = prefectureName;
-                    // Google Mapsのルート検索用URL（モバイル・PC両対応）
                     const mapUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(start)}&destination=${encodeURIComponent(goal)}&travelmode=driving`;
                     window.open(mapUrl, '_blank');
                 }
