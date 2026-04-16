@@ -854,7 +854,19 @@
             { 
                 label: "ホテルを探す", 
                 icon: "🏨", 
-                url: `https://search.travel.rakuten.co.jp/ds/vacant/searchVacant?f_query=${encodeURIComponent(prefectureName)}` 
+                // 楽天トラベルキーワード検索APIを利用したアフィリエイトリンク
+                action: () => {
+                    const appId = '37e639f8-ef63-4ba0-90ba-a851ce44ca23'; // 書き換えてください
+                    const affId = '52e959bc.15d9121a.52e959bd.aefd9435'; // 書き換えてください
+                    
+                    // 直接検索結果ページへ飛ばすアフィリエイトリンクURLの構成
+                    // travel.rakuten.co.jp の検索結果にアフィリエイトIDを紐付けます
+                    const baseUrl = "https://hb.afl.rakuten.co.jp/hgc/ra/travel/";
+                    const targetUrl = `https://travel.rakuten.co.jp/index_html?f_query=${encodeURIComponent(prefectureName)}`;
+                    const finalUrl = `${baseUrl}?pc=${encodeURIComponent(targetUrl)}&linkCode=hy2&id=${affId}`;
+                    
+                    window.open(finalUrl, '_blank');
+                }
             },
             { 
                 label: "レンタカー", 
@@ -862,9 +874,15 @@
                 url: `https://www.google.com/search?q=${encodeURIComponent(prefectureName)}+レンタカー+予約` 
             },
             { 
-                label: "ルートを保存", 
-                icon: "📍", 
-                action: () => { alert("ブラウザの「ブックマーク」や「共有」から結果を保存しましょう！"); } 
+                label: "ルートを確認", 
+                icon: "🗺️", 
+                action: () => {
+                    const start = selectedPrefecture || "";
+                    const goal = prefectureName;
+                    // Google Mapsのルート検索用URL（モバイル・PC両対応）
+                    const mapUrl = `https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(start)}&destination=${encodeURIComponent(goal)}&travelmode=driving`;
+                    window.open(mapUrl, '_blank');
+                }
             }
         ];
 
