@@ -855,15 +855,14 @@
                 label: "ホテルを探す", 
                 icon: "🏨", 
                 action: () => {
-                    // あなたのIDをここにセット
-                    const appId = '37e639f8-ef63-4ba0-90ba-a851ce44ca23';
                     const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
                     
-                    // 楽天トラベル公式の「キーワード検索導線」にアフィリエイトIDを付与する最も標準的な形式
-                    // APIドキュメントの概念に基づき、トラベルのシステムが直接解釈できるURLを生成します
-                    const targetUrl = `https://search.travel.rakuten.co.jp/ds/vacant/searchVacant?f_query=${encodeURIComponent(prefectureName)}&f_hybrid=0&f_max=20`;
+                    // 1. 遷移先（楽天トラベルの検索結果）URL
+                    // パラメータを最小限にし、URL全体を強力にエンコードします
+                    const targetUrl = `https://travel.rakuten.co.jp/index_html?f_query=${prefectureName}`;
                     
-                    // 楽天アフィリエイトの「リンク作成ツール」と同じ構造に整形
+                    // 2. 楽天アフィリエイト公式の「サーチ連携」用ベースURL
+                    // m=p（楽天市場）ではなく m=tr（楽天トラベル）を明示的に指定
                     const finalUrl = `https://hb.afl.rakuten.co.jp/hgc/ra/travel/?pc=${encodeURIComponent(targetUrl)}&linkCode=hy2&id=${affId}`;
                     
                     window.open(finalUrl, '_blank');
