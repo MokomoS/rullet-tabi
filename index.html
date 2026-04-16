@@ -854,32 +854,18 @@
             { 
                 label: "ホテルを探す", 
                 icon: "🏨", 
-                action: async () => {
-                    const appId = '37e639f8-ef63-4ba0-90ba-a851ce44ca23';
+                action: () => {
                     const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
                     
-                    // 1. 楽天キーワード検索APIのURLを作成
-                    // encodeURIComponentで日本語（県名）を安全に渡します
-                    const apiUrl = `https://app.rakuten.co.jp/services/api/Travel/KeywordHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&keyword=${encodeURIComponent(prefectureName)}&format=json&hits=1`;
-
-                    try {
-                        const response = await fetch(apiUrl);
-                        const data = await response.json();
-
-                        // 2. APIレスポンスから、楽天公式のアフィリエイトURL（affiliateUrl）を抽出
-                        if (data.hotels && data.hotels.length > 0) {
-                            // 最初のホテルのアフィリエイトリンクを取得
-                            const hotelAffiliateUrl = data.hotels[0].hotel[0].hotelBasicInfo.hotelAffiliateUrl;
-                            window.open(hotelAffiliateUrl, '_blank');
-                        } else {
-                            // 万が一ホテルが見つからない場合は、予備の検索ページへ
-                            window.open(`https://travel.rakuten.co.jp/index_html?f_query=${encodeURIComponent(prefectureName)}`, '_blank');
-                        }
-                    } catch (error) {
-                        console.error("APIリクエストエラー:", error);
-                        // エラー時もユーザーを逃がすために標準の検索へ
-                        window.open(`https://travel.rakuten.co.jp/index_html?f_query=${encodeURIComponent(prefectureName)}`, '_blank');
-                    }
+                    // 楽天トラベルの「キーワード検索」を直接叩くためのURL
+                    // f_query ではなく sitem（検索単語）を使用する公式のリダイレクト形式です
+                    const targetUrl = `https://travel.rakuten.co.jp/index_html?sitem=${encodeURIComponent(prefectureName)}`;
+                    
+                    // 【最重要】id（アフィリエイトID）を末尾に、m=tr（トラベル指定）を確実に含める
+                    // これにより、楽天のゲートウェイが「トラベル案件」として正しくルーティングします
+                    const finalUrl = `https://hb.afl.rakuten.co.jp/hgc/ra/travel/?pc=${encodeURIComponent(targetUrl)}&linkCode=hy2&id=${affId}&m=tr`;
+                    
+                    window.open(finalUrl, '_blank');
                 }
             },
             { 
