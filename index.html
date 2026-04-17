@@ -890,7 +890,18 @@
             { 
                 label: "レンタカー予約", 
                 icon: "🚗", 
-                url: `https://www.google.com/search?q=${encodeURIComponent(prefectureName)}+レンタカー+予約` 
+                action: () => {
+                    const affId = '52ec94e4.d986eaaa.52ec6059.b7cf170b';
+                    const ut = 'eyJwYWdlIjoic2hvcCIsInR5cGUiOiJoeWJyaWRfdXJsIiwiY29sIjoxLCJjYXQiOjEsImJhbiI6Mjc2MjQ4OCwiYW1wIjpmYWxzZX0%3D';
+                    
+                    // 【修正ポイント】prefectureName（目的地）ではなく
+                    // currentStartPref（最初に入力した出発地）を検索クエリに使う
+                    const startLocation = currentStartPref || "";
+                    const carSearchUrl = encodeURIComponent(`https://travel.rakuten.co.jp/cars/search/?f_query=${encodeURIComponent(startLocation)}`);
+                    
+                    const url = `https://hb.afl.rakuten.co.jp/hgc/${affId}/?pc=${carSearchUrl}&link_type=hybrid_url&ut=${ut}`;
+                    window.open(url, '_blank');
+                }
             }
         ];
 
