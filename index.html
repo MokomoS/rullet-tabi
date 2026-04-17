@@ -856,47 +856,37 @@
                 action: async () => {
                     const appId = '37e639f8-ef63-4ba0-90ba-a851ce44ca23';
                     const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
-                    const accessKey = 'pk_WQ2Pbd88qKY0QUj3MFiq38ID9MTONUruVjYI04Vbcv'; // 実値を入力してください
+                    const accessKey = 'pk_WQ2Pbd88qKY0QUj3MFiq38ID9MTONUruVjYI04Vbcv'; // スクショのキーを入力
 
-                    // キーワード検索APIを使用。
-                    // 確実にその県の検索結果を取得するため、URLにaffiliateIdを含めてリクエストします。
+                    // 1. APIを叩いて「データ」を取得するためのURL（ご提示の形式に準拠）
+                    // 検索結果の1件目を取得し、その中に含まれる公式アフィリエイトURLを狙います
                     const apiUrl = `https://app.rakuten.co.jp/services/api/Travel/KeywordHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&accessKey=${accessKey}&format=json&keyword=${encodeURIComponent(prefectureName)}&hits=1`;
 
                     try {
+                        // ブラウザの裏側でAPIに問い合わせ
                         const response = await fetch(apiUrl);
                         const data = await response.json();
 
-                        // APIが正常にレスポンスを返しているかチェック
+                        // 2. 取得したデータの中から、楽天が生成した「hotelAffiliateUrl」を取り出す
                         if (data.hotels && data.hotels.length > 0) {
-                            // 1. 個別ホテルではなく、APIが「この検索条件（県名）」に対して生成した
-                            //    アフィリエイトリンクを探します。
-                            // ※ KeywordHotelSearchでは、各ホテルの情報の中にその検索意図に沿ったURLが含まれます。
-                            const hotelInfo = data.hotels[0].hotel[0].hotelBasicInfo;
+                            const officialAffiliateUrl = data.hotels[0].hotel[0].hotelBasicInfo.hotelAffiliateUrl;
                             
-                            // 優先順位1: ホテルの詳細アフィリエイトURL
-                            // 優先順位2: 検索結果のアフィリエイトURL（あれば）
-                            const targetAffiliateUrl = hotelInfo.hotelAffiliateUrl;
-
-                            if (targetAffiliateUrl) {
-                                // アフィリエイトリンクとして遷移
-                                window.open(targetAffiliateUrl, '_blank');
-                                return; // 成功したのでここで終了
+                            if (officialAffiliateUrl) {
+                                // 成功：楽天公式が認めたアフィリエイトリンクで遷移
+                                window.open(officialAffiliateUrl, '_blank');
+                            } else {
+                                throw new Error("URL未取得");
                             }
+                        } else {
+                            // 3. データが取れなかった場合のみ、手動で組み立てた検索結果ページへ（次善策）
+                            const searchUrl = `https://search.travel.rakuten.co.jp/ds/vacant/searchVacant?f_query=${encodeURIComponent(prefectureName)}`;
+                            window.open(`https://hb.afl.rakuten.co.jp/hgc/ra/travel/?pc=${encodeURIComponent(searchUrl)}&linkCode=hy2&id=${affId}`, '_blank');
                         }
-                        
-                        // --- ここから下は「API経由のアフィリエイトURL」が取得できなかった場合の強制リンク生成 ---
-                        // APIからURLが取れない場合でも、手動で組み立てた「アフィリエイト・ゲートウェイ」を介して
-                        // 検索結果ページ（searchVacant）へ飛ばすことで、成果対象にします。
-                        const searchUrl = `https://search.travel.rakuten.co.jp/ds/vacant/searchVacant?f_query=${encodeURIComponent(prefectureName)}`;
-                        const finalAflUrl = `https://hb.afl.rakuten.co.jp/hgc/ra/travel/?pc=${encodeURIComponent(searchUrl)}&linkCode=hy2&id=${affId}`;
-                        
-                        window.open(finalAflUrl, '_blank');
-
                     } catch (error) {
-                        console.error("API連携失敗:", error);
-                        // 通信エラー時も、最低限アフィリエイトIDを乗せたURLで検索結果へ
-                        const searchUrl = `https://search.travel.rakuten.co.jp/ds/vacant/searchVacant?f_query=${encodeURIComponent(prefectureName)}`;
-                        window.open(`https://hb.afl.rakuten.co.jp/hgc/ra/travel/?pc=${encodeURIComponent(searchUrl)}&linkCode=hy2&id=${affId}`, '_blank');
+                        console.error("API実行エラー:", error);
+                        // エラー時も成果対象になるよう、アフィリエイトID付きURLで飛ばす
+                        const fallback = `https://search.travel.rakuten.co.jp/ds/vacant/searchVacant?f_query=${encodeURIComponent(prefectureName)}`;
+                        window.open(`https://hb.afl.rakuten.co.jp/hgc/ra/travel/?pc=${encodeURIComponent(fallback)}&linkCode=hy2&id=${affId}`, '_blank');
                     }
                 }
             },
