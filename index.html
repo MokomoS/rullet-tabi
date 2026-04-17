@@ -861,18 +861,16 @@
                     const newWindow = window.open('', '_blank');
 
                     try {
-                        // 1. APIヒット率向上のため「県名 + ホテル」で検索、hitsも3に増加
-                        const apiUrl = `https://app.rakuten.co.jp/services/api/Travel/KeywordHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&format=json&keyword=${encodeURIComponent(prefectureName + " ホテル")}&hits=3`;
-
+                        const apiUrl = `https://app.rakuten.co.jp/services/api/Travel/KeywordHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&format=json&keyword=${encodeURIComponent(prefectureName)}&hits=3`;
+                    
                         const response = await fetch(apiUrl);
                         const data = await response.json();
-
+                    
                         if (data.hotels && data.hotels.length > 0) {
                             const hotel = data.hotels[0].hotel[0].hotelBasicInfo;
                             const url = hotel.hotelAffiliateUrl;
-
+                    
                             if (url && url.startsWith("http")) {
-                                // API成功：取得したアフィリエイトURLへ遷移
                                 newWindow.location.href = url;
                                 return;
                             }
