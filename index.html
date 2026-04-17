@@ -856,40 +856,36 @@
                 action: async () => {
                     const appId = '37e639f8-ef63-4ba0-90ba-a851ce44ca23';
                     const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
-                    // ★スクショの「Access Key」の右側にある目のアイコンを押して表示される文字列を入れてください
+                    // ★ご自身のAccess Keyに書き換えてください
                     const accessKey = 'pk_WQ2Pbd88qKY0QUj3MFiq38ID9MTONUruVjYI04Vbcv'; 
-                    
-                    // 都道府県名からAPI用のmiddleClassCode（JP01〜JP47）を取得
-                    // ※prefectureIdMapの値をそのまま使います（例：JP13）
-                    const middleCode = prefectureIdMap[prefectureName];
 
-                    if (!middleCode) {
-                        window.open(`https://travel.rakuten.co.jp/index_html?f_query=${encodeURIComponent(prefectureName)}`, '_blank');
-                        return;
-                    }
-
-                    // 楽天API 2017-04-26最新仕様に準拠
-                    // accessKeyをパラメータとして追加
-                    const apiUrl = `https://app.rakuten.co.jp/services/api/Travel/SimpleHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&accessKey=${accessKey}&format=json&largeClassCode=japan&middleClassCode=${middleCode}&hits=1`;
+                    // 地域コード(ClassCode)の代わりに、確実にヒットする「キーワード検索API」を使用します。
+                    // これにより、地区コードAPIを別途参照する手間とエラーリスクを排除します。
+                    const apiUrl = `https://app.rakuten.co.jp/services/api/Travel/KeywordHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&accessKey=${accessKey}&format=json&keyword=${encodeURIComponent(prefectureName)}&hits=1`;
 
                     try {
                         const response = await fetch(apiUrl);
                         const data = await response.json();
 
+                        // レスポンスの階層がSimpleHotelSearchと微妙に異なるため、正確に抽出します
                         if (data.hotels && data.hotels.length > 0) {
-                            // APIが生成したアフィリエイトURLへ遷移
-                            const hotelAffiliateUrl = data.hotels[0].hotel[0].hotelBasicInfo.hotelAffiliateUrl;
-                            window.open(hotelAffiliateUrl, '_blank');
-                        } else if (data.error) {
-                            console.error("楽天APIエラー:", data.error_description);
-                            // API側でエラー（認証失敗など）が出た場合は標準検索へ
-                            window.open(`https://travel.rakuten.co.jp/index_html?f_query=${encodeURIComponent(prefectureName)}`, '_blank');
+                            // キーワード検索結果の1件目のアフィリエイトURLを取得
+                            const hotel = data.hotels[0].hotel[0].hotelBasicInfo;
+                            const targetUrl = hotel.hotelAffiliateUrl;
+                            
+                            if (targetUrl) {
+                                window.open(targetUrl, '_blank');
+                            } else {
+                                throw new Error("Affiliate URL not found");
+                            }
                         } else {
-                            alert(`${prefectureName}の空室情報が見つかりませんでした。`);
+                            // 宿が見つからない、またはAPIエラー時は通常の検索一覧へ飛ばす（index_htmlを削除）
+                            window.open(`https://travel.rakuten.co.jp/?f_query=${encodeURIComponent(prefectureName)}`, '_blank');
                         }
                     } catch (error) {
-                        console.error("通信エラー:", error);
-                        window.open(`https://travel.rakuten.co.jp/index_html?f_query=${encodeURIComponent(prefectureName)}`, '_blank');
+                        console.error("API Error:", error);
+                        // 通信失敗時もユーザーを逃がさない
+                        window.open(`https://travel.rakuten.co.jp/?f_query=${encodeURIComponent(prefectureName)}`, '_blank');
                     }
                 }
             },
