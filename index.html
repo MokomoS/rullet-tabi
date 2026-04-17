@@ -853,66 +853,16 @@
             { 
                 label: "ホテルを探す", 
                 icon: "🏨", 
-                action: async () => {
-                    const appId = '37e639f8-ef63-4ba0-90ba-a851ce44ca23';
-                    const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
-        
-                    // ポップアップブロック回避のため、通信前に空のタブを開いておく
-                    const newWindow = window.open('', '_blank');
-        
-                    // 楽天トラベル 都道府県キーワード検索の正しいフォールバックURL
-                    // f_teikei パラメータでアフィリエイトID付与
-                    const fallbackUrl = `https://travel.rakuten.co.jp/yado/search.html?f_keyword=${encodeURIComponent(prefectureName)}&f_teikei=${affId}`;
-        
-                    try {
-                        // ✅ 正しいドメイン: app.rakuten.co.jp
-                        const apiUrl = `https://app.rakuten.co.jp/services/api/Travel/KeywordHotelSearch/20170426`
-                            + `?applicationId=${appId}`
-                            + `&affiliateId=${affId}`
-                            + `&format=json`
-                            + `&keyword=${encodeURIComponent(prefectureName)}`
-                            + `&hits=1`;
-        
-                        const response = await fetch(apiUrl);
-        
-                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
-        
-                        const data = await response.json();
-        
-                        // ✅ レスポンス構造を安全にチェック
-                        const hotelList = data?.hotels;
-                        if (
-                            Array.isArray(hotelList) &&
-                            hotelList.length > 0 &&
-                            hotelList[0]?.hotel?.[0]?.hotelBasicInfo
-                        ) {
-                            const hotelInfo = hotelList[0].hotel[0].hotelBasicInfo;
-        
-                            // affiliateId を指定していれば hotelAffiliateUrl にIDが入る
-                            const affiliateUrl = hotelInfo.hotelAffiliateUrl;
-                            const planListUrl = hotelInfo.planListUrl;
-        
-                            if (affiliateUrl && affiliateUrl.startsWith('http')) {
-                                newWindow.location.href = affiliateUrl;
-                                return;
-                            }
-        
-                            // affiliateUrlが空の場合はplanListUrlで代替
-                            if (planListUrl && planListUrl.startsWith('http')) {
-                                newWindow.location.href = planListUrl;
-                                return;
-                            }
-                        }
-        
-                        // APIで取得できなかった場合のフォールバック
-                        newWindow.location.href = fallbackUrl;
-        
-                    } catch (e) {
-                        console.error('楽天トラベルAPI エラー:', e);
-                        if (newWindow && !newWindow.closed) {
-                            newWindow.location.href = fallbackUrl;
-                        }
-                    }
+                action: () => {
+                    const affId = '52ec633d.48523991.52ec633e.2e04326f';
+                    const keyword = encodeURIComponent(prefectureName);
+                    const destUrl = encodeURIComponent(
+                        `https://travel.rakuten.co.jp/yado/search.html?f_keyword=${keyword}`
+                    );
+                    
+                    const url = `https://hb.afl.rakuten.co.jp/hgc/${affId}/?pc=${destUrl}&link_type=text&ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRleHQiLCJjb2wiOjF9`;
+                    
+                    window.open(url, '_blank');
                 }
             },
             { 
