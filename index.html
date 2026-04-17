@@ -856,35 +856,62 @@
                 action: async () => {
                     const appId = '37e639f8-ef63-4ba0-90ba-a851ce44ca23';
                     const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
-                    const accessKey = 'pk_WQ2Pbd88qKY0QUj3MFiq38ID9MTONUruVjYI04Vbcv';
-
+        
                     // ポップアップブロック回避のため、通信前に空のタブを開いておく
                     const newWindow = window.open('', '_blank');
-
+        
+                    // 楽天トラベル 都道府県キーワード検索の正しいフォールバックURL
+                    // f_teikei パラメータでアフィリエイトID付与
+                    const fallbackUrl = `https://travel.rakuten.co.jp/yado/search.html?f_keyword=${encodeURIComponent(prefectureName)}&f_teikei=${affId}`;
+        
                     try {
-                        const apiUrl = `https://openapi.rakuten.co.jp/engine/api/Travel/KeywordHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&format=json&keyword=${encodeURIComponent(prefectureName)}&hits=3`;
-                    
+                        // ✅ 正しいドメイン: app.rakuten.co.jp
+                        const apiUrl = `https://app.rakuten.co.jp/services/api/Travel/KeywordHotelSearch/20170426`
+                            + `?applicationId=${appId}`
+                            + `&affiliateId=${affId}`
+                            + `&format=json`
+                            + `&keyword=${encodeURIComponent(prefectureName)}`
+                            + `&hits=1`;
+        
                         const response = await fetch(apiUrl);
+        
+                        if (!response.ok) throw new Error(`HTTP ${response.status}`);
+        
                         const data = await response.json();
-                    
-                        if (data.hotels && data.hotels.length > 0) {
-                            const hotel = data.hotels[0].hotel[0].hotelBasicInfo;
-                            const url = hotel.hotelAffiliateUrl;
-                    
-                            if (url && url.startsWith("http")) {
-                                newWindow.location.href = url;
+        
+                        // ✅ レスポンス構造を安全にチェック
+                        const hotelList = data?.hotels;
+                        if (
+                            Array.isArray(hotelList) &&
+                            hotelList.length > 0 &&
+                            hotelList[0]?.hotel?.[0]?.hotelBasicInfo
+                        ) {
+                            const hotelInfo = hotelList[0].hotel[0].hotelBasicInfo;
+        
+                            // affiliateId を指定していれば hotelAffiliateUrl にIDが入る
+                            const affiliateUrl = hotelInfo.hotelAffiliateUrl;
+                            const planListUrl = hotelInfo.planListUrl;
+        
+                            if (affiliateUrl && affiliateUrl.startsWith('http')) {
+                                newWindow.location.href = affiliateUrl;
+                                return;
+                            }
+        
+                            // affiliateUrlが空の場合はplanListUrlで代替
+                            if (planListUrl && planListUrl.startsWith('http')) {
+                                newWindow.location.href = planListUrl;
                                 return;
                             }
                         }
-
-                        // 2. Fallback：API未取得時もアフィリエイトIDを付与した検索結果へ
-                        // パラメータ直付け(f_affiliate_id)によりリダイレクトエラーを回避
-                        newWindow.location.href = `https://travel.rakuten.co.jp/search/?f_keyword=${encodeURIComponent(prefectureName)}&f_affiliate_id=${affId}`;
-
+        
+                        // APIで取得できなかった場合のフォールバック
+                        newWindow.location.href = fallbackUrl;
+        
                     } catch (e) {
-                        console.error("API Error:", e);
-                        // 3. 通信エラー時もアフィリエイトID付きURLでフォールバック
-                        newWindow.location.href = `https://travel.rakuten.co.jp/search/?f_keyword=${encodeURIComponent(prefectureName)}&f_affiliate_id=${affId}`;
+                        console.error('楽天トラベルAPI エラー:', e);
+                        if (newWindow && !newWindow.closed) {
+                            newWindow.location.href = fallbackUrl;
+                        }
                     }
                 }
             },
