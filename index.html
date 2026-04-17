@@ -894,19 +894,17 @@
                     const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
                     const ut = 'eyJwYWdlIjoidXJsIiwidHlwZSI6InRleHQiLCJjb2wiOjF9';
                     
-                    // 出発地（currentStartPref）からスラッグを取得
-                    const startLocation = currentStartPref || "";
+                    const startPrefSelect = document.getElementById('startPref');
+                    const startLocation = startPrefSelect ? startPrefSelect.value : "";
+                    
                     const slug = prefectureSlug[startLocation];
                     
-                    // ホテルと同様、スラッグがあれば都道府県別ページ、なければトップへ
+                    // スラッグが取得できない（未選択など）場合でも404にならないようガード
                     const carUrl = encodeURIComponent(
-                        slug
-                            ? `https://travel.rakuten.co.jp/cars/${slug}/`
-                            : `https://travel.rakuten.co.jp/cars/`
+                        slug ? `https://travel.rakuten.co.jp/cars/${slug}/` : `https://travel.rakuten.co.jp/cars/`
                     );
                     
-                    // レンタカーリンク生成時の link_type=hybrid_url を維持
-                    const url = `https://hb.afl.rakuten.co.jp/hgc/${affId}/?pc=${carUrl}&link_type=hybrid_url&ut=${ut}`;
+                    const url = `https://hb.afl.rakuten.co.jp/hgc/${affId}/?pc=${carUrl}&link_type=text&ut=${ut}`;
                     window.open(url, '_blank');
                 }
             }
