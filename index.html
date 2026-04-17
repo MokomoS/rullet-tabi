@@ -861,7 +861,7 @@
 
                     // 1. 公式仕様に基づいたAPIエンドポイントの構築
                     // ドキュメント通り、applicationId, affiliateId, accessKey, keyword をパラメータにセット
-                    const apiUrl = `https://openapi.rakuten.co.jp/engine/api/Travel/KeywordHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&accessKey=${accessKey}&format=xml&keyword=${encodeURIComponent(prefectureName)}&hits=1`;
+                    const apiUrl = `https://app.rakuten.co.jp/services/api/Travel/KeywordHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&accessKey=${accessKey}&format=json&keyword=${encodeURIComponent(prefectureName)}&hits=1`;
 
                     try {
                         // 2. ブラウザの裏側でデータを取得（fetch）
