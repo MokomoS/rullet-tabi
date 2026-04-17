@@ -891,19 +891,10 @@
                 label: "レンタカー予約", 
                 icon: "🚗", 
                 action: () => {
-                    const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
-                    
-                    const startPrefSelect = document.getElementById('startPref');
-                    const startLocation = startPrefSelect ? startPrefSelect.value : "";
-                    const slug = prefectureSlug[startLocation];
-                    
-                    // レンタカーも同様に、直リンク形式で構築
-                    const baseUrl = slug 
-                        ? `https://travel.rakuten.co.jp/cars/${slug}/` 
-                        : `https://travel.rakuten.co.jp/cars/`;
-                    
-                    const finalUrl = `${baseUrl}?f_affiliate_id=${affId}`;
-                    window.open(finalUrl, '_blank');
+                    // 提示いただいた「確実に動作する」楽天レンタカーのアフィリエイトURL
+                    // パラメータを動的にいじらず、そのままのURLを使用します
+                    const url = `https://hb.afl.rakuten.co.jp/hsc/52ec94e4.d986eaaa.52ec6059.b7cf170b/?link_type=hybrid_url&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJoeWJyaWRfdXJsIiwiY29sIjoxLCJjYXQiOjEsImJhbiI6Mjc2MjQ4OCwiYW1wIjpmYWxzZX0%3D`;
+                    window.open(url, '_blank');
                 }
             }
         ];
