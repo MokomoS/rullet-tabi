@@ -856,12 +856,13 @@
                 action: async () => {
                     const appId = '37e639f8-ef63-4ba0-90ba-a851ce44ca23';
                     const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
+                    const accessKey = 'pk_WQ2Pbd88qKY0QUj3MFiq38ID9MTONUruVjYI04Vbcv';
 
                     // ポップアップブロック回避のため、通信前に空のタブを開いておく
                     const newWindow = window.open('', '_blank');
 
                     try {
-                        const apiUrl = `https://app.rakuten.co.jp/services/api/Travel/KeywordHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&format=json&keyword=${encodeURIComponent(prefectureName)}&hits=3`;
+                        const apiUrl = `https://openapi.rakuten.co.jp/engine/api/Travel/KeywordHotelSearch/20170426?applicationId=${appId}&affiliateId=${affId}&format=json&keyword=${encodeURIComponent(prefectureName)}&hits=3`;
                     
                         const response = await fetch(apiUrl);
                         const data = await response.json();
