@@ -892,20 +892,18 @@
                 icon: "🚗", 
                 action: () => {
                     const affId = '52e959bc.15d9121a.52e959bd.aefd9435';
-                    const ut = 'eyJwYWdlIjoidXJsIiwidHlwZSI6InRleHQiLCJjb2wiOjF9';
                     
                     const startPrefSelect = document.getElementById('startPref');
                     const startLocation = startPrefSelect ? startPrefSelect.value : "";
-                    
                     const slug = prefectureSlug[startLocation];
                     
-                    // スラッグが取得できない（未選択など）場合でも404にならないようガード
-                    const carUrl = encodeURIComponent(
-                        slug ? `https://travel.rakuten.co.jp/cars/${slug}/` : `https://travel.rakuten.co.jp/cars/`
-                    );
+                    // レンタカーも同様に、直リンク形式で構築
+                    const baseUrl = slug 
+                        ? `https://travel.rakuten.co.jp/cars/${slug}/` 
+                        : `https://travel.rakuten.co.jp/cars/`;
                     
-                    const url = `https://hb.afl.rakuten.co.jp/hgc/${affId}/?pc=${carUrl}&link_type=text&ut=${ut}`;
-                    window.open(url, '_blank');
+                    const finalUrl = `${baseUrl}?f_affiliate_id=${affId}`;
+                    window.open(finalUrl, '_blank');
                 }
             }
         ];
