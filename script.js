@@ -112,12 +112,82 @@ const spots = {};
 Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => ({ name, description })); });
 
 
+/* 楽天トラベル レンタカーのエリア別ページ（area/<地方>/<県>/） */
+const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","岩手県":"tohoku/iwate","宮城県":"tohoku/miyagi","秋田県":"tohoku/akita","山形県":"tohoku/yamagata","福島県":"tohoku/fukushima","茨城県":"kitakanto/ibaraki","栃木県":"kitakanto/tochigi","群馬県":"kitakanto/gunma","埼玉県":"kanto/saitama","千葉県":"kanto/chiba","東京都":"kanto/tokyo","神奈川県":"kanto/kanagawa","新潟県":"chubu/niigata","富山県":"chubu/toyama","石川県":"chubu/ishikawa","福井県":"chubu/fukui","山梨県":"chubu/yamanashi","長野県":"chubu/nagano","岐阜県":"chubu/gifu","静岡県":"chubu/shizuoka","愛知県":"chubu/aichi","三重県":"chubu/mie","滋賀県":"kinki/shiga","京都府":"kinki/kyoto","大阪府":"kinki/osaka","兵庫県":"kinki/hyogo","奈良県":"kinki/nara","和歌山県":"kinki/wakayama","鳥取県":"chu-shikoku/tottori","島根県":"chu-shikoku/shimane","岡山県":"chu-shikoku/okayama","広島県":"chu-shikoku/hiroshima","山口県":"chu-shikoku/yamaguchi","徳島県":"chu-shikoku/tokushima","香川県":"chu-shikoku/kagawa","愛媛県":"chu-shikoku/ehime","高知県":"chu-shikoku/kochi","福岡県":"kyushu/fukuoka","佐賀県":"kyushu/saga","長崎県":"kyushu/nagasaki","熊本県":"kyushu/kumamoto","大分県":"kyushu/oita","宮崎県":"kyushu/miyazaki","鹿児島県":"kyushu/kagoshima","沖縄県":"okinawa/okinawa"};
+
+
 /* ================= app ================= */
 (function () {
   var $ = function (id) { return document.getElementById(id); };
   var state = { start: "東京都", dest: null, budget: null, spinning: false, stamps: [], turns: 0, rolling: false };
   var id2pref = {};
   Object.keys(idMap).forEach(function (p) { id2pref[idMap[p]] = p; });
+
+  /* ---------- 計測（GA4） ---------- */
+  function track(name, params) {
+    try { if (typeof gtag === "function") gtag("event", name, params || {}); } catch (e) {}
+  }
+
+  /* ---------- 楽天アフィリエイト ---------- */
+  // URLタイプのリンク。pc= に任意の楽天ドメインのURLを渡せる。
+  var AFF_TRAVEL = "52e959bc.15d9121a.52e959bd.aefd9435"; // 宿（既存のID）
+  var AFF_CARS   = "52ec94e4.d986eaaa.52ec6059.b7cf170b"; // レンタカー（既存のIDを流用）
+  var AFF_UT = "eyJwYWdlIjoidXJsIiwidHlwZSI6InRleHQiLCJjb2wiOjF9";
+
+  function aff(ids, url) {
+    return "https://hb.afl.rakuten.co.jp/hgc/" + ids + "/?pc=" + encodeURIComponent(url) +
+           "&link_type=text&ut=" + AFF_UT;
+  }
+
+  function pad(n) { return (n < 10 ? "0" : "") + n; }
+  function addDays(base, n) { var d = new Date(base.getTime()); d.setDate(d.getDate() + n); return d; }
+
+  // 出た目×1万円を、楽天トラベルの価格上限プルダウンに存在する値へ寄せる
+  var PRICE_CAP = { 1: 10000, 2: 20000, 3: 30000, 4: 40000, 5: 50000, 6: 100000 };
+
+  // 明日チェックイン・明後日チェックアウト。予算が出ていれば上限価格(f_kin)も乗せる。
+  function hotelUrl(pref, budget) {
+    var sl = slug[pref];
+    if (!sl) return "https://travel.rakuten.co.jp/";
+    var now = new Date(), i = addDays(now, 1), o = addDays(now, 2);
+    var q = "f_nen1=" + i.getFullYear() + "&f_tuki1=" + pad(i.getMonth() + 1) + "&f_hi1=" + pad(i.getDate()) +
+            "&f_nen2=" + o.getFullYear() + "&f_tuki2=" + pad(o.getMonth() + 1) + "&f_hi2=" + pad(o.getDate()) +
+            "&f_heya_su=1&f_otona_su=2";
+    var cap = budget ? PRICE_CAP[budget / 10000] : null;
+    if (cap) q += "&f_kin=" + cap;
+    return "https://search.travel.rakuten.co.jp/ds/yado/" + sl + "?" + q;
+  }
+
+  function carUrl(pref) {
+    var area = carArea[pref];
+    return area ? "https://cars.travel.rakuten.co.jp/cars/area/" + area + "/"
+                : "https://travel.rakuten.co.jp/cars/";
+  }
+
+  function updateLinks() {
+    var dest = state.dest;
+    if (!dest) return;
+    $("hotelLink").href = aff(AFF_TRAVEL, hotelUrl(dest, state.budget));
+    $("carLink").href = aff(AFF_CARS, carUrl(dest));
+    $("hotelLabel").textContent = state.budget
+      ? "¥" + state.budget.toLocaleString() + "以内で泊まれる宿"
+      : "明日泊まれる宿を探す";
+    $("carLabel").textContent = dest + "でレンタカーを押さえる";
+    var mh = $("modalHotel");
+    if (mh) mh.href = $("hotelLink").href;
+  }
+
+  // アフィリエイトリンクのクリックを計測する
+  ["hotelLink", "carLink"].forEach(function (id) {
+    $(id).addEventListener("click", function () {
+      track("affiliate_click", {
+        link_id: id === "hotelLink" ? "hotel" : "car",
+        destination: state.dest || "",
+        budget: state.budget || 0,
+        placement: "prep"
+      });
+    });
+  });
 
   // --- start select ---
   var sel = $("startPref");
@@ -127,7 +197,7 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
     sel.appendChild(o);
   });
   sel.value = state.start;
-  sel.addEventListener("change", function () { setStart(sel.value); });
+  sel.addEventListener("change", function () { setStart(sel.value, "select"); });
 
   // --- map ---
   fetch("japan-map.svg").then(function (r) { return r.text(); }).then(function (txt) {
@@ -140,7 +210,7 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
       el.style.transition = "fill .18s linear";
       var pref = id2pref[el.id];
       if (!pref) return;
-      el.addEventListener("click", function () { setStart(pref); });
+      el.addEventListener("click", function () { setStart(pref, "map"); });
       el.addEventListener("mouseenter", function () {
         if (pref !== state.start && pref !== state.dest) el.style.fill = "#ffc4b8";
       });
@@ -163,13 +233,14 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
     });
   }
 
-  function setStart(pref) {
+  function setStart(pref, how) {
     state.start = pref; state.dest = null; state.budget = null; state.spinning = false;
     sel.value = pref;
     $("mapStart").textContent = pref;
     $("result").hidden = true;
     $("reel").hidden = true;
     paint();
+    track("select_start", { start: pref, method: how || "select" });
   }
 
   // --- roulette ---
@@ -213,6 +284,7 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
     fetchWeather(dest);
     addStamp(dest);
     $("result").hidden = false;
+    track("spin_roulette", { start: state.start, destination: dest });
     // riseUp アニメーション（0.5s）の transform が消えてから位置を測る
     setTimeout(function () {
       var top = window.scrollY + $("result").getBoundingClientRect().top;
@@ -225,14 +297,10 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
     $("legRow").textContent = state.start + " → " + dest;
     $("routeLink").href = "https://www.google.com/maps/dir/?api=1&origin=" +
       encodeURIComponent(state.start) + "&destination=" + encodeURIComponent(dest) + "&travelmode=driving";
-    var sl = slug[dest];
-    var travel = encodeURIComponent(sl ? "https://travel.rakuten.co.jp/yado/" + sl + "/" : "https://travel.rakuten.co.jp/");
-    $("hotelLink").href = "https://hb.afl.rakuten.co.jp/hgc/52e959bc.15d9121a.52e959bd.aefd9435/?pc=" + travel +
-      "&link_type=text&ut=eyJwYWdlIjoidXJsIiwidHlwZSI6InRleHQiLCJjb2wiOjF9";
-    $("carLink").href = "https://hb.afl.rakuten.co.jp/hsc/52ec94e4.d986eaaa.52ec6059.b7cf170b/?link_type=hybrid_url&ut=eyJwYWdlIjoic2hvcCIsInR5cGUiOiJoeWJyaWRfdXJsIiwiY29sIjoxLCJjYXQiOjEsImJhbiI6Mjc2MjQ4OCwiYW1wIjpmYWxzZX0%3D";
     $("prepNote").textContent = dest + "の宿とレンタカー。回した勢いのまま押さえるのが一番早い。";
     $("budget").textContent = "— — —";
     $("budgetNote").textContent = "まだ振っていません。";
+    updateLinks();
 
     var wrap = $("spots");
     wrap.innerHTML = "";
@@ -275,7 +343,10 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
       state.budget = v * 10000;
       $("budget").textContent = "¥" + state.budget.toLocaleString();
       $("budgetNote").textContent = "この金額で" + state.dest + "を一日遊ぶ。";
+      $("prepNote").textContent = "予算¥" + state.budget.toLocaleString() + "。この範囲で泊まれる" + state.dest + "の宿を並べました。";
       updateStampBudget(state.budget);
+      updateLinks();
+      track("roll_dice", { destination: state.dest || "", face: v, budget: state.budget });
     }, 1650);
   });
 
@@ -283,6 +354,7 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
   $("shareBtn").addEventListener("click", function () {
     var b = state.budget ? " 明日の予算は¥" + state.budget.toLocaleString() + "！" : "";
     var text = "ルー列島旅NEXT！ " + state.start + "から次の行き先は「" + state.dest + "」！" + b + " #ルーレット旅NEXT";
+    track("share", { method: "x", destination: state.dest || "", budget: state.budget || 0 });
     window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(text) +
       "&url=" + encodeURIComponent(location.href), "_blank");
   });
@@ -292,10 +364,30 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
     $("modalPref").textContent = pref + " の観光スポット";
     $("modalName").textContent = s.name;
     $("modalBody").textContent = s.description;
+    $("modalMap").href = "https://www.google.com/maps/search/?api=1&query=" +
+      encodeURIComponent(pref + " " + s.name);
+    $("modalHotel").href = aff(AFF_TRAVEL, hotelUrl(pref, state.budget));
+    $("modalHotelLabel").textContent = pref + "の宿を探す";
     $("modal").hidden = false;
+    track("open_spot", { destination: pref, spot: s.name });
   }
-  $("modalClose").addEventListener("click", function () { $("modal").hidden = true; });
-  $("modal").addEventListener("click", function (e) { if (e.target === $("modal")) $("modal").hidden = true; });
+  $("modalMap").addEventListener("click", function () {
+    track("open_spot_map", { destination: state.dest || "", spot: $("modalName").textContent });
+  });
+  $("modalHotel").addEventListener("click", function () {
+    track("affiliate_click", {
+      link_id: "hotel",
+      destination: state.dest || "",
+      budget: state.budget || 0,
+      placement: "spot_modal"
+    });
+  });
+  function closeModal() { $("modal").hidden = true; }
+  $("modalClose").addEventListener("click", closeModal);
+  $("modal").addEventListener("click", function (e) { if (e.target === $("modal")) closeModal(); });
+  document.addEventListener("keydown", function (e) {
+    if (e.key === "Escape" && !$("modal").hidden) closeModal();
+  });
 
   // --- stamps ---
   try { state.stamps = JSON.parse(localStorage.getItem("rullet-tabi:stamps") || "[]"); } catch (e) { state.stamps = []; }

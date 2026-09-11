@@ -361,5 +361,7 @@ select.input { font-family: inherit; font-size: 18px; font-weight: 700; padding:
 .modal { background: #fff; border: 2px solid var(--color-text); max-width: 520px; width: 100%; padding: 32px; box-shadow: var(--shadow-lg); }
 .modal h3 { margin: 10px 0 14px; font-size: 28px; font-weight: 900; line-height: 1.2; letter-spacing: -.02em; }
 .modal p { margin: 0; font-size: 15px; line-height: 1.9; color: var(--color-neutral-800); text-wrap: pretty; }
+.modal-actions { display: grid; gap: 8px; margin-top: 22px; }
+.link-block.compact { padding: 13px 16px; font-size: 14px; border-width: 2px; }
 .modal-close { width: 100%; margin-top: 24px; }
 [hidden] { display: none !important; }
