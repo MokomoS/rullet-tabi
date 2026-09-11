@@ -112,6 +112,24 @@ function bootApp() {
     track("affiliate_click", affParams("prep", state.transport || "car"));
   });
 
+  /* ---------- 県別ページへの導線 ---------- */
+  function updateStartLink() {
+    var a = $("startPrefLink");
+    if (!a || !slug[state.start]) return;
+    a.href = "pref/" + slug[state.start] + "/";
+    a.textContent = state.start + "のページ \u2192";
+  }
+  ["startPrefLink", "destPrefLink"].forEach(function (id) {
+    var el = $(id);
+    if (!el) return;
+    el.addEventListener("click", function () {
+      track("to_pref_page", {
+        prefecture: id === "startPrefLink" ? state.start : (state.dest || ""),
+        placement: id === "startPrefLink" ? "map_bar" : "result_poster"
+      });
+    });
+  });
+
   // --- start select ---
   var sel = $("startPref");
   prefectures.forEach(function (p) {
@@ -164,6 +182,7 @@ function bootApp() {
     state.route = [pref];
     sel.value = pref;
     $("mapStart").textContent = pref;
+    updateStartLink();
     $("result").hidden = true;
     $("reel").hidden = true;
     paint();
@@ -248,6 +267,7 @@ function bootApp() {
     state.start = from;
     sel.value = from;
     $("mapStart").textContent = from;
+    updateStartLink();
     spin();
   });
 
@@ -285,6 +305,10 @@ function bootApp() {
     $("transport").textContent = "—";
     $("transportNote").textContent = "ダイスと一緒に決まります。";
     $("chainLabel").textContent = dest + "から、もう一回回す";
+    if ($("destPrefLink") && slug[dest]) {
+      $("destPrefLink").href = "pref/" + slug[dest] + "/";
+      $("destPrefLabel").textContent = dest + "のページを見る";
+    }
     updateLinks();
 
     var wrap = $("spots");
@@ -448,6 +472,7 @@ function bootApp() {
     state.dest = route[route.length - 1];
     sel.value = state.start;
     $("mapStart").textContent = state.start;
+    updateStartLink();
 
     var b = parseInt(q.get("b"), 10);
     if (b >= 1 && b <= 6) state.budget = b * 10000;
@@ -573,6 +598,7 @@ function bootApp() {
   });
 
   state.route = [state.start];
+  updateStartLink();
   // 地図の読み込み結果に関係なく、共有リンクからの復元は成立させる
   restoreFromUrl();
 }

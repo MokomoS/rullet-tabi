@@ -56,7 +56,7 @@
   <div class="hero-map">
     <div class="map-bar">
       <span class="kicker">JAPAN / 47</span>
-      <span class="map-start">出発 <b id="mapStart">東京都</b></span>
+      <span class="map-start">出発 <b id="mapStart">東京都</b><a id="startPrefLink" class="head-preflink" href="pref/tokyo/">東京都のページ &#8594;</a></span>
     </div>
     <div id="mapContainer"><span class="loading">地図を読み込み中…</span></div>
   </div>
@@ -78,6 +78,9 @@
     <div class="poster-actions">
       <a id="routeLink" href="#" target="_blank" rel="noopener" class="link-block">
         <span>Googleマップでルートを見る</span><span>&#8599;</span>
+      </a>
+      <a id="destPrefLink" href="#" class="link-block">
+        <span id="destPrefLabel">この県のページを見る</span><span>&#8599;</span>
       </a>
       <button type="button" id="shareBtn" class="link-block ghost-white">
         <span>この結果をXでシェア</span><span>&#8599;</span>
@@ -175,6 +178,47 @@
     <div class="step"><div class="step-no">03</div><div class="step-t">予算ダイスを振る</div><div class="block-note">出た目 &times; 1万円と、移動手段が決まる。</div></div>
     <div class="step"><div class="step-no">04</div><div class="step-t">宿と足を押さえる</div><div class="block-note">押さえたら、そこからまた回せる。</div></div>
   </div>
+</section>
+
+<section class="block">
+  <details class="prefdir">
+    <summary>
+      <span>47都道府県から選ぶ</span>
+      <span class="prefdir-chev">&#9662;</span>
+    </summary>
+    <div class="prefdir-body">
+<!-- PREF_INDEX:START -->
+      <div class="prefrow">
+        <span class="prefrow-name">北海道・東北</span>
+        <span class="prefrow-links"><a href="pref/hokkaido/">北海道</a><a href="pref/aomori/">青森県</a><a href="pref/iwate/">岩手県</a><a href="pref/miyagi/">宮城県</a><a href="pref/akita/">秋田県</a><a href="pref/yamagata/">山形県</a><a href="pref/fukushima/">福島県</a></span>
+      </div>
+      <div class="prefrow">
+        <span class="prefrow-name">関東</span>
+        <span class="prefrow-links"><a href="pref/ibaraki/">茨城県</a><a href="pref/tochigi/">栃木県</a><a href="pref/gunma/">群馬県</a><a href="pref/saitama/">埼玉県</a><a href="pref/chiba/">千葉県</a><a href="pref/tokyo/">東京都</a><a href="pref/kanagawa/">神奈川県</a></span>
+      </div>
+      <div class="prefrow">
+        <span class="prefrow-name">中部</span>
+        <span class="prefrow-links"><a href="pref/niigata/">新潟県</a><a href="pref/toyama/">富山県</a><a href="pref/ishikawa/">石川県</a><a href="pref/fukui/">福井県</a><a href="pref/yamanashi/">山梨県</a><a href="pref/nagano/">長野県</a><a href="pref/gifu/">岐阜県</a><a href="pref/shizuoka/">静岡県</a><a href="pref/aichi/">愛知県</a></span>
+      </div>
+      <div class="prefrow">
+        <span class="prefrow-name">近畿</span>
+        <span class="prefrow-links"><a href="pref/mie/">三重県</a><a href="pref/shiga/">滋賀県</a><a href="pref/kyoto/">京都府</a><a href="pref/osaka/">大阪府</a><a href="pref/hyogo/">兵庫県</a><a href="pref/nara/">奈良県</a><a href="pref/wakayama/">和歌山県</a></span>
+      </div>
+      <div class="prefrow">
+        <span class="prefrow-name">中国</span>
+        <span class="prefrow-links"><a href="pref/tottori/">鳥取県</a><a href="pref/shimane/">島根県</a><a href="pref/okayama/">岡山県</a><a href="pref/hiroshima/">広島県</a><a href="pref/yamaguchi/">山口県</a></span>
+      </div>
+      <div class="prefrow">
+        <span class="prefrow-name">四国</span>
+        <span class="prefrow-links"><a href="pref/tokushima/">徳島県</a><a href="pref/kagawa/">香川県</a><a href="pref/ehime/">愛媛県</a><a href="pref/kochi/">高知県</a></span>
+      </div>
+      <div class="prefrow">
+        <span class="prefrow-name">九州・沖縄</span>
+        <span class="prefrow-links"><a href="pref/fukuoka/">福岡県</a><a href="pref/saga/">佐賀県</a><a href="pref/nagasaki/">長崎県</a><a href="pref/kumamoto/">熊本県</a><a href="pref/oita/">大分県</a><a href="pref/miyazaki/">宮崎県</a><a href="pref/kagoshima/">鹿児島県</a><a href="pref/okinawa/">沖縄県</a></span>
+      </div>
+<!-- PREF_INDEX:END -->
+    </div>
+  </details>
 </section>
 
 <footer class="site-foot">

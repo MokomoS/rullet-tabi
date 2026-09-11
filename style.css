@@ -412,3 +412,30 @@ select.input { font-family: inherit; font-size: 18px; font-weight: 700; padding:
   .reach-row { grid-template-columns: 52px 44px 1fr; gap: 8px; padding: 12px 16px; }
   .reach-n { font-size: 20px; }
 }
+
+/* ===== 県別ページへの導線 ===== */
+.head-preflink { display: inline-block; margin-left: 10px; font-size: 12px; font-weight: 800;
+  color: var(--color-accent); text-decoration: none; border-bottom: 2px solid var(--color-accent); padding-bottom: 1px; }
+.head-preflink:hover { color: var(--color-accent-700); border-color: var(--color-accent-700); }
+
+.prefdir { background: var(--color-bg); }
+.prefdir > summary { list-style: none; cursor: pointer; display: flex; align-items: center;
+  justify-content: space-between; gap: 12px; padding: 18px 24px; font-size: 15px; font-weight: 900; }
+.prefdir > summary::-webkit-details-marker { display: none; }
+.prefdir > summary:hover { background: var(--color-accent-100); }
+.prefdir-chev { font-size: 13px; font-weight: 800; color: var(--color-accent); display: inline-block; }
+.prefdir[open] .prefdir-chev { transform: rotate(180deg); }
+.prefdir-body { border-top: 2px solid var(--color-text); }
+
+.prefrow { display: grid; grid-template-columns: 110px 1fr; gap: 10px; padding: 10px 24px;
+  border-bottom: 1px solid var(--color-neutral-300); background: #fff; }
+.prefrow:last-child { border-bottom: 0; }
+.prefrow-name { font-size: 11px; font-weight: 800; letter-spacing: .1em; color: var(--color-accent); padding-top: 2px; }
+.prefrow-links { font-size: 13px; line-height: 1.95; }
+.prefrow-links a { display: inline-block; white-space: nowrap; color: var(--color-text);
+  text-decoration: none; border-bottom: 1px solid var(--color-neutral-400); margin-right: 10px; }
+.prefrow-links a:hover { color: var(--color-accent); border-color: var(--color-accent); }
+
+@media (max-width: 560px) {
+  .prefrow { grid-template-columns: 1fr; gap: 2px; padding: 10px 16px; }
+}
