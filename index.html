@@ -82,8 +82,24 @@
       <button type="button" id="shareBtn" class="link-block ghost-white">
         <span>この結果をXでシェア</span><span>&#8599;</span>
       </button>
+      <div class="share-row">
+        <button type="button" id="shareLineBtn" class="link-block ghost-white">
+          <span>LINEで送る</span><span>&#8599;</span>
+        </button>
+        <button type="button" id="saveImgBtn" class="link-block ghost-white">
+          <span>画像で保存</span><span>&#8595;</span>
+        </button>
+      </div>
       <div id="legRow" class="leg"></div>
     </div>
+  </section>
+
+  <section class="mission">
+    <div class="mission-head">
+      <span class="kicker accent">明日のお題</span>
+      <button type="button" id="missionReroll" class="textbtn">引き直す</button>
+    </div>
+    <div id="missionText" class="mission-text"></div>
   </section>
 
   <section class="block">
@@ -104,7 +120,7 @@
       </div>
       <div class="dice-copy">
         <div class="kicker">STEP 03 — 予算ダイス</div>
-        <div class="block-note">出た目 &times; 1万円が、明日使えるお金。</div>
+        <div class="block-note">出た目 &times; 1万円が明日使えるお金。移動手段も同時に決まります。</div>
         <button type="button" id="rollBtn" class="btn btn-secondary flush">ダイスを転がす</button>
       </div>
     </div>
@@ -112,6 +128,11 @@
       <div class="kicker muted">明日の予算</div>
       <div id="budget" class="budget">— — —</div>
       <div id="budgetNote" class="block-note">まだ振っていません。</div>
+      <div class="transport-row">
+        <span class="kicker muted">明日の移動手段</span>
+        <span id="transport" class="transport">—</span>
+        <span id="transportNote" class="block-note">ダイスと一緒に決まります。</span>
+      </div>
     </div>
   </section>
 
@@ -122,17 +143,25 @@
       <a id="hotelLink" href="#" target="_blank" rel="noopener sponsored" class="link-block outline">
         <span id="hotelLabel">明日泊まれる宿を探す</span><span class="accent">&#8599;</span>
       </a>
-      <a id="carLink" href="#" target="_blank" rel="noopener sponsored" class="link-block outline">
-        <span id="carLabel">レンタカーを押さえる</span><span class="accent">&#8599;</span>
+      <a id="moveLink" href="#" target="_blank" rel="noopener sponsored" class="link-block outline">
+        <span id="moveLabel">レンタカーを押さえる</span><span class="accent">&#8599;</span>
       </a>
     </div>
     <div class="fineprint">楽天のアフィリエイトリンクです。別タブで開きます。</div>
+  </section>
+
+  <section class="chain">
+    <button type="button" id="chainBtn" class="btn btn-primary spin-btn">
+      <span id="chainLabel">ここから、もう一回回す</span><span class="arrow">&#8594;</span>
+    </button>
+    <div class="fineprint">いまいる県を出発地にして旅を続けます。来た道にはなるべく戻りません。</div>
   </section>
 </div>
 
 <section id="stampSection" class="block" hidden>
   <div class="block-bar">
     <span class="kicker">スタンプ帳</span>
+    <span id="stampStats" class="block-note stamp-stats"></span>
     <button type="button" id="clearStamps" class="textbtn">すべて消す</button>
   </div>
   <div id="stamps" class="stamps"></div>
@@ -143,8 +172,8 @@
   <div class="howto">
     <div class="step"><div class="step-no">01</div><div class="step-t">出発地を選ぶ</div><div class="block-note">地図をタップするか、リストから。</div></div>
     <div class="step"><div class="step-no">02</div><div class="step-t">ルーレットを回す</div><div class="block-note">隣接する県から一つだけ選ばれます。</div></div>
-    <div class="step"><div class="step-no">03</div><div class="step-t">予算ダイスを振る</div><div class="block-note">出た目 &times; 1万円で明日を過ごす。</div></div>
-    <div class="step"><div class="step-no">04</div><div class="step-t">宿と車を押さえる</div><div class="block-note">決まったらそのまま予約へ。</div></div>
+    <div class="step"><div class="step-no">03</div><div class="step-t">予算ダイスを振る</div><div class="block-note">出た目 &times; 1万円と、移動手段が決まる。</div></div>
+    <div class="step"><div class="step-no">04</div><div class="step-t">宿と足を押さえる</div><div class="block-note">押さえたら、そこからまた回せる。</div></div>
   </div>
 </section>
 

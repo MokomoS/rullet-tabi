@@ -343,6 +343,16 @@ select.input { font-family: inherit; font-size: 18px; font-weight: 700; padding:
 .prep-note { margin: 6px 0 20px; }
 .prep-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 12px; margin-bottom: 12px; }
 
+.mission { border-bottom: 2px solid var(--color-text); padding: 26px 24px; background: var(--color-accent-100); }
+.mission-head { display: flex; align-items: baseline; justify-content: space-between; gap: 12px; }
+.mission-text { margin-top: 10px; font-size: clamp(20px, 3.2vw, 30px); font-weight: 900; line-height: 1.35; letter-spacing: -.02em; }
+.share-row { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
+.transport-row { margin-top: 20px; padding-top: 16px; border-top: 2px solid var(--color-text); }
+.transport { display: block; margin: 4px 0 2px; font-size: clamp(24px, 3.4vw, 38px); font-weight: 900; letter-spacing: -.02em; }
+.chain { border-bottom: 2px solid var(--color-text); padding: 26px 24px; display: flex; flex-direction: column; gap: 10px; }
+.stamp-leg { font-size: 11px; font-weight: 700; color: var(--color-neutral-600); }
+.stamp-stats { font-size: 12px; text-align: right; }
+
 .stamps { display: grid; grid-template-columns: repeat(auto-fill, minmax(150px, 1fr)); }
 .stamp { border-right: 2px solid var(--color-text); border-bottom: 2px solid var(--color-text); padding: 18px; display: flex; flex-direction: column; gap: 6px; min-width: 0; background: #fff; }
 .stamp-date { font-size: 10px; font-weight: 800; letter-spacing: .16em; color: var(--color-neutral-600); }

@@ -115,13 +115,44 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
 /* 楽天トラベル レンタカーのエリア別ページ（area/<地方>/<県>/） */
 const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","岩手県":"tohoku/iwate","宮城県":"tohoku/miyagi","秋田県":"tohoku/akita","山形県":"tohoku/yamagata","福島県":"tohoku/fukushima","茨城県":"kitakanto/ibaraki","栃木県":"kitakanto/tochigi","群馬県":"kitakanto/gunma","埼玉県":"kanto/saitama","千葉県":"kanto/chiba","東京都":"kanto/tokyo","神奈川県":"kanto/kanagawa","新潟県":"chubu/niigata","富山県":"chubu/toyama","石川県":"chubu/ishikawa","福井県":"chubu/fukui","山梨県":"chubu/yamanashi","長野県":"chubu/nagano","岐阜県":"chubu/gifu","静岡県":"chubu/shizuoka","愛知県":"chubu/aichi","三重県":"chubu/mie","滋賀県":"kinki/shiga","京都府":"kinki/kyoto","大阪府":"kinki/osaka","兵庫県":"kinki/hyogo","奈良県":"kinki/nara","和歌山県":"kinki/wakayama","鳥取県":"chu-shikoku/tottori","島根県":"chu-shikoku/shimane","岡山県":"chu-shikoku/okayama","広島県":"chu-shikoku/hiroshima","山口県":"chu-shikoku/yamaguchi","徳島県":"chu-shikoku/tokushima","香川県":"chu-shikoku/kagawa","愛媛県":"chu-shikoku/ehime","高知県":"chu-shikoku/kochi","福岡県":"kyushu/fukuoka","佐賀県":"kyushu/saga","長崎県":"kyushu/nagasaki","熊本県":"kyushu/kumamoto","大分県":"kyushu/oita","宮崎県":"kyushu/miyazaki","鹿児島県":"kyushu/kagoshima","沖縄県":"okinawa/okinawa"};
 
+/* 楽天トラベル 高速バスの県別ページ（/bus/pref/<slug>.html）
+   宿の slug とはローマ字表記が違うので別に持つ（山梨=yamanasi, 千葉=tiba など） */
+const busSlug = {"北海道":"hokkaido","青森県":"aomori","岩手県":"iwate","宮城県":"miyagi","秋田県":"akita","山形県":"yamagata","福島県":"hukushima","茨城県":"ibaragi","栃木県":"tochigi","群馬県":"gunma","埼玉県":"saitama","千葉県":"tiba","東京都":"tokyo","神奈川県":"kanagawa","新潟県":"niigata","富山県":"toyama","石川県":"ishikawa","福井県":"hukui","山梨県":"yamanasi","長野県":"nagano","岐阜県":"gihu","静岡県":"shizuoka","愛知県":"aichi","三重県":"mie","滋賀県":"shiga","京都府":"kyoto","大阪府":"osaka","兵庫県":"hyogo","奈良県":"nara","和歌山県":"wakayama","鳥取県":"tottori","島根県":"simane","岡山県":"okayama","広島県":"hiroshima","山口県":"yamaguchi","徳島県":"tokushima","香川県":"kagawa","愛媛県":"ehime","高知県":"kouchi","福岡県":"hukuoka","佐賀県":"saga","長崎県":"nagasaki","熊本県":"kumamoto","大分県":"ooita","宮崎県":"miyazaki","鹿児島県":"kagoshima","沖縄県":"okinawa"};
+
+/* 明日の「お題」。どの県でも成立する、お金のかからないものを中心に。 */
+const MISSIONS = [
+  "地元のスーパーで、見たことのない惣菜をひとつ買う",
+  "駅から歩いて15分以内の店で、昼をすませる",
+  "その土地の水を、そのまま飲んでみる",
+  "ご当地サイダーか、ご当地牛乳を1本さがす",
+  "名前を知らなかった駅で、一度だけ降りてみる",
+  "商店街を、端から端まで歩ききる",
+  "県の名前がついたお菓子を買って帰る",
+  "地元の人に「おすすめ」を一度だけ聞く",
+  "夕方、いちばん高いところに登って街を見る",
+  "コンビニに売っていない飲みものを見つける",
+  "その土地の麺類を食べる",
+  "風呂に入る。銭湯でも温泉でもいい",
+  "写真を10枚撮る。ただし人は写さない",
+  "神社か寺をひとつ、通りすがりでいいので寄る",
+  "朝ごはんを、宿の外で食べる",
+  "海か川か湖を、この目で見る",
+  "その県の形をした何かを探す",
+  "帰る前に、もう一杯だけ寄り道する"
+];
+
 
 /* ================= app ================= */
 (function () {
   var $ = function (id) { return document.getElementById(id); };
-  var state = { start: "東京都", dest: null, budget: null, spinning: false, stamps: [], turns: 0, rolling: false };
-  var id2pref = {};
+  var state = {
+    start: "東京都", dest: null, budget: null, transport: null, mission: null,
+    spinning: false, rolling: false, turns: 0,
+    route: [], stamps: []
+  };
+  var id2pref = {}, slug2pref = {};
   Object.keys(idMap).forEach(function (p) { id2pref[idMap[p]] = p; });
+  Object.keys(slug).forEach(function (p) { slug2pref[slug[p]] = p; });
 
   /* ---------- 計測（GA4） ---------- */
   function track(name, params) {
@@ -130,7 +161,7 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
 
   /* ---------- 楽天アフィリエイト ---------- */
   // URLタイプのリンク。pc= に任意の楽天ドメインのURLを渡せる。
-  var AFF_TRAVEL = "52e959bc.15d9121a.52e959bd.aefd9435"; // 宿（既存のID）
+  var AFF_TRAVEL = "52e959bc.15d9121a.52e959bd.aefd9435"; // 宿・バス・パック（既存のID）
   var AFF_CARS   = "52ec94e4.d986eaaa.52ec6059.b7cf170b"; // レンタカー（既存のIDを流用）
   var AFF_UT = "eyJwYWdlIjoidXJsIiwidHlwZSI6InRleHQiLCJjb2wiOjF9";
 
@@ -141,6 +172,7 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
 
   function pad(n) { return (n < 10 ? "0" : "") + n; }
   function addDays(base, n) { var d = new Date(base.getTime()); d.setDate(d.getDate() + n); return d; }
+  function pick(arr) { return arr[Math.floor(Math.random() * arr.length)]; }
 
   // 出た目×1万円を、楽天トラベルの価格上限プルダウンに存在する値へ寄せる
   var PRICE_CAP = { 1: 10000, 2: 20000, 3: 30000, 4: 40000, 5: 50000, 6: 100000 };
@@ -163,30 +195,65 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
     return area ? "https://cars.travel.rakuten.co.jp/cars/area/" + area + "/"
                 : "https://travel.rakuten.co.jp/cars/";
   }
+  function busUrl(pref) {
+    var s = busSlug[pref];
+    return s ? "https://travel.rakuten.co.jp/bus/pref/" + s + ".html"
+             : "https://travel.rakuten.co.jp/bus/";
+  }
+
+  /* ---------- 移動手段 ---------- */
+  var TRANSPORT = {
+    car:   { label: "レンタカー",   note: "寄り道は自由。",       ids: AFF_CARS,   url: carUrl,
+             cta: function (p) { return p + "でレンタカーを押さえる"; } },
+    train: { label: "電車・新幹線", note: "移動中から呑んでいい。", ids: AFF_TRAVEL,
+             url: function () { return "https://travel.rakuten.co.jp/package/jr/"; },
+             cta: function (p) { return p + "へ 新幹線＋宿で行く"; } },
+    bus:   { label: "高速バス",     note: "浮いた分は現地で使う。", ids: AFF_TRAVEL, url: busUrl,
+             cta: function (p) { return p + "行きの高速バスを探す"; } },
+    air:   { label: "飛行機",       note: "海を越える日。",         ids: AFF_TRAVEL,
+             url: function () { return "https://travel.rakuten.co.jp/package/ana/"; },
+             cta: function (p) { return p + "へ 航空券＋宿で行く"; } },
+    ferry: { label: "フェリー",     note: "車ごと、海を渡る。",     ids: AFF_CARS,   url: carUrl,
+             cta: function (p) { return p + "でレンタカーを押さえる"; } }
+  };
+
+  // 北海道・沖縄がからむ区間は陸路で行けない
+  function isSeaLeg(a, b) {
+    return a === "北海道" || b === "北海道" || a === "沖縄県" || b === "沖縄県";
+  }
+  function pickTransport(from, to) {
+    return isSeaLeg(from, to) ? pick(["air", "ferry"]) : pick(["car", "train", "bus"]);
+  }
 
   function updateLinks() {
     var dest = state.dest;
     if (!dest) return;
+    var t = TRANSPORT[state.transport || "car"];
     $("hotelLink").href = aff(AFF_TRAVEL, hotelUrl(dest, state.budget));
-    $("carLink").href = aff(AFF_CARS, carUrl(dest));
     $("hotelLabel").textContent = state.budget
       ? "¥" + state.budget.toLocaleString() + "以内で泊まれる宿"
       : "明日泊まれる宿を探す";
-    $("carLabel").textContent = dest + "でレンタカーを押さえる";
+    $("moveLink").href = aff(t.ids, t.url(dest));
+    $("moveLabel").textContent = t.cta(dest);
     var mh = $("modalHotel");
     if (mh) mh.href = $("hotelLink").href;
   }
 
-  // アフィリエイトリンクのクリックを計測する
-  ["hotelLink", "carLink"].forEach(function (id) {
-    $(id).addEventListener("click", function () {
-      track("affiliate_click", {
-        link_id: id === "hotelLink" ? "hotel" : "car",
-        destination: state.dest || "",
-        budget: state.budget || 0,
-        placement: "prep"
-      });
-    });
+  function affParams(placement, which) {
+    return {
+      link_id: which,
+      destination: state.dest || "",
+      budget: state.budget || 0,
+      transport: state.transport || "",
+      leg: Math.max(0, state.route.length - 1),
+      placement: placement
+    };
+  }
+  $("hotelLink").addEventListener("click", function () {
+    track("affiliate_click", affParams("prep", "hotel"));
+  });
+  $("moveLink").addEventListener("click", function () {
+    track("affiliate_click", affParams("prep", state.transport || "car"));
   });
 
   // --- start select ---
@@ -200,7 +267,7 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
   sel.addEventListener("change", function () { setStart(sel.value, "select"); });
 
   // --- map ---
-  fetch("japan-map.svg").then(function (r) { return r.text(); }).then(function (txt) {
+  fetch("japan-map.svg").then(function (r) { if (!r.ok) throw 0; return r.text(); }).then(function (txt) {
     var host = $("mapContainer");
     host.innerHTML = txt;
     host.querySelectorAll("path, circle").forEach(function (el) {
@@ -221,6 +288,7 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
 
   function paint(flash) {
     var cands = adjacent[state.start] || [];
+    var visited = state.route;
     document.querySelectorAll("#mapContainer path, #mapContainer circle").forEach(function (el) {
       var pref = id2pref[el.id];
       var fill = "#eae7e7";
@@ -228,13 +296,16 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
         if (pref === state.start) fill = "#201e1d";
         else if (pref === (flash || state.dest)) fill = "#ec3013";
         else if (state.spinning && cands.indexOf(pref) >= 0) fill = "#ffc4b8";
+        else if (visited.indexOf(pref) >= 0) fill = "#ffc4b8";
       }
       el.style.fill = fill;
     });
   }
 
   function setStart(pref, how) {
-    state.start = pref; state.dest = null; state.budget = null; state.spinning = false;
+    state.start = pref; state.dest = null; state.budget = null;
+    state.transport = null; state.mission = null; state.spinning = false;
+    state.route = [pref];
     sel.value = pref;
     $("mapStart").textContent = pref;
     $("result").hidden = true;
@@ -243,13 +314,26 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
     track("select_start", { start: pref, method: how || "select" });
   }
 
-  // --- roulette ---
-  $("spinBtn").addEventListener("click", function () {
+  /* ---------- ルーレット ---------- */
+  function candidatesFor(start) {
+    var cands = (adjacent[start] || prefectures).filter(function (p) { return p !== start; });
+    // 来た道はなるべく除く。ただし選択肢が消えてしまう場合（北海道↔青森など）は許す。
+    var prev = state.route.length >= 2 ? state.route[state.route.length - 2] : null;
+    if (prev) {
+      var filtered = cands.filter(function (p) { return p !== prev; });
+      if (filtered.length) return filtered;
+    }
+    return cands;
+  }
+
+  function spin() {
     if (state.spinning) return;
-    var cands = (adjacent[state.start] || prefectures).filter(function (p) { return p !== state.start; });
-    var final = cands[Math.floor(Math.random() * cands.length)];
+    var cands = candidatesFor(state.start);
+    var final = pick(cands);
     var total = 2400, t = 0, i = 0;
     state.spinning = true; state.dest = null; state.budget = null;
+    state.transport = null; state.mission = null;
+    if (!state.route.length) state.route = [state.start];
     $("result").hidden = true;
     $("reel").hidden = false;
     revealReel();
@@ -263,6 +347,10 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
       t += gap;
       setTimeout(tick, gap);
     })();
+  }
+  $("spinBtn").addEventListener("click", function () {
+    state.route = [state.start];
+    spin();
   });
 
   // 回している間は「地図 + ROLLING の帯」が同時に見える位置へ寄せる
@@ -276,30 +364,71 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
   }
 
   function land(dest) {
-    state.spinning = false; state.dest = dest;
+    state.spinning = false;
+    state.dest = dest;
+    state.route.push(dest);
     $("reelName").textContent = dest;
     setTimeout(function () { $("reel").hidden = true; }, 320);
     paint();
+    drawMission(dest);
     renderResult(dest);
     fetchWeather(dest);
-    addStamp(dest);
+    addStamp();
     $("result").hidden = false;
-    track("spin_roulette", { start: state.start, destination: dest });
-    // riseUp アニメーション（0.5s）の transform が消えてから位置を測る
+    track("spin_roulette", {
+      start: state.start, destination: dest, leg: state.route.length - 1
+    });
     setTimeout(function () {
       var top = window.scrollY + $("result").getBoundingClientRect().top;
       window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
     }, 560);
   }
 
+  /* ---------- 連鎖（旅を続ける） ---------- */
+  $("chainBtn").addEventListener("click", function () {
+    if (state.spinning || !state.dest) return;
+    var from = state.dest;
+    track("continue_journey", { from: from, leg: state.route.length - 1 });
+    state.start = from;
+    sel.value = from;
+    $("mapStart").textContent = from;
+    spin();
+  });
+
+  /* ---------- お題 ---------- */
+  function drawMission(dest) {
+    var list = spots[dest] || [];
+    if (list.length && Math.random() < 0.4) {
+      state.mission = "「" + pick(list).name + "」まで、実際に行ってみる";
+    } else {
+      state.mission = pick(MISSIONS);
+    }
+    $("missionText").textContent = state.mission;
+  }
+  $("missionReroll").addEventListener("click", function () {
+    if (!state.dest) return;
+    drawMission(state.dest);
+    updateStampCurrent();
+    track("reroll_mission", { destination: state.dest });
+  });
+
+  /* ---------- 結果 ---------- */
+  function routeLabel() {
+    return state.route.length > 2 ? state.route.join(" → ") : state.start + " → " + state.dest;
+  }
+
   function renderResult(dest) {
+    var legs = state.route.length - 1;
     $("destName").textContent = dest;
-    $("legRow").textContent = state.start + " → " + dest;
+    $("legRow").textContent = (legs > 1 ? legs + "県目 ／ " : "") + routeLabel();
     $("routeLink").href = "https://www.google.com/maps/dir/?api=1&origin=" +
       encodeURIComponent(state.start) + "&destination=" + encodeURIComponent(dest) + "&travelmode=driving";
-    $("prepNote").textContent = dest + "の宿とレンタカー。回した勢いのまま押さえるのが一番早い。";
+    $("prepNote").textContent = dest + "の宿と足。回した勢いのまま押さえるのが一番早い。";
     $("budget").textContent = "— — —";
     $("budgetNote").textContent = "まだ振っていません。";
+    $("transport").textContent = "—";
+    $("transportNote").textContent = "ダイスと一緒に決まります。";
+    $("chainLabel").textContent = dest + "から、もう一回回す";
     updateLinks();
 
     var wrap = $("spots");
@@ -329,10 +458,10 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
       .catch(function () { $("weather").textContent = "明日の天気はいま取得できません"; });
   }
 
-  // --- dice ---
+  /* ---------- ダイス（予算＋移動手段） ---------- */
   var faceRot = { 1: [0, 0], 6: [0, 180], 3: [0, -90], 4: [0, 90], 5: [-90, 0], 2: [90, 0] };
   $("rollBtn").addEventListener("click", function () {
-    if (state.rolling) return;
+    if (state.rolling || !state.dest) return;
     state.rolling = true;
     var v = Math.floor(Math.random() * 6) + 1;
     var base = faceRot[v];
@@ -341,26 +470,155 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
     setTimeout(function () {
       state.rolling = false;
       state.budget = v * 10000;
+      state.transport = pickTransport(state.start, state.dest);
+      var t = TRANSPORT[state.transport];
       $("budget").textContent = "¥" + state.budget.toLocaleString();
       $("budgetNote").textContent = "この金額で" + state.dest + "を一日遊ぶ。";
-      $("prepNote").textContent = "予算¥" + state.budget.toLocaleString() + "。この範囲で泊まれる" + state.dest + "の宿を並べました。";
-      updateStampBudget(state.budget);
+      $("transport").textContent = t.label;
+      $("transportNote").textContent = t.note;
+      $("prepNote").textContent = "予算¥" + state.budget.toLocaleString() + "、移動は" + t.label +
+        "。その条件で" + state.dest + "を押さえます。";
+      updateStampCurrent();
       updateLinks();
-      track("roll_dice", { destination: state.dest || "", face: v, budget: state.budget });
+      track("roll_dice", {
+        destination: state.dest, face: v, budget: state.budget, transport: state.transport
+      });
     }, 1650);
   });
 
-  // --- share ---
+  /* ---------- シェア ---------- */
+  function shareText() {
+    var b = state.budget ? "／予算¥" + state.budget.toLocaleString() : "";
+    var t = state.transport ? "／" + TRANSPORT[state.transport].label : "";
+    var legs = state.route.length - 1;
+    var head = legs > 1 ? "ルー列島旅NEXT！ " + legs + "県まわって「" + state.dest + "」に到着！"
+                        : "ルー列島旅NEXT！ " + state.start + "から次の行き先は「" + state.dest + "」！";
+    return head + b + t + " #ルーレット旅NEXT";
+  }
+  function shareUrl() {
+    var qs = "r=" + state.route.map(function (p) { return slug[p]; }).join("-");
+    if (state.budget) qs += "&b=" + (state.budget / 10000);
+    if (state.transport) qs += "&t=" + state.transport;
+    return location.origin + location.pathname + "?" + qs;
+  }
+
   $("shareBtn").addEventListener("click", function () {
-    var b = state.budget ? " 明日の予算は¥" + state.budget.toLocaleString() + "！" : "";
-    var text = "ルー列島旅NEXT！ " + state.start + "から次の行き先は「" + state.dest + "」！" + b + " #ルーレット旅NEXT";
     track("share", { method: "x", destination: state.dest || "", budget: state.budget || 0 });
-    window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(text) +
-      "&url=" + encodeURIComponent(location.href), "_blank");
+    window.open("https://twitter.com/intent/tweet?text=" + encodeURIComponent(shareText()) +
+      "&url=" + encodeURIComponent(shareUrl()), "_blank");
+  });
+  $("shareLineBtn").addEventListener("click", function () {
+    track("share", { method: "line", destination: state.dest || "", budget: state.budget || 0 });
+    window.open("https://social-plugins.line.me/lineit/share?url=" + encodeURIComponent(shareUrl()) +
+      "&text=" + encodeURIComponent(shareText()), "_blank");
   });
 
-  // --- modal ---
+  /* ---------- 結果カードの画像化 ---------- */
+  function drawCard() {
+    var W = 1200, H = 630, c = document.createElement("canvas");
+    c.width = W; c.height = H;
+    var g = c.getContext("2d");
+    var jp = '"Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif';
+
+    g.fillStyle = "#ec3013"; g.fillRect(0, 0, W, H);
+    g.fillStyle = "#201e1d"; g.fillRect(0, H - 14, W, 14);
+
+    g.fillStyle = "#fff";
+    g.font = "800 22px " + jp;
+    g.fillText("ルー列島旅 NEXT", 64, 88);
+    g.font = "800 20px " + jp;
+    g.fillText("次の行き先", 64, 150);
+
+    var name = state.dest || "";
+    var size = name.length > 4 ? 120 : 150;
+    g.font = "900 " + size + "px " + jp;
+    g.fillText(name, 60, 150 + size * 0.95);
+
+    var y = 430;
+    g.font = "700 26px " + jp;
+    var legs = state.route.length - 1;
+    var line = (legs > 1 ? legs + "県目 ／ " : "") + routeLabel();
+    if (line.length > 34) line = line.slice(0, 33) + "…";
+    g.fillText(line, 64, y); y += 46;
+
+    var meta = [];
+    if (state.budget) meta.push("予算 ¥" + state.budget.toLocaleString());
+    if (state.transport) meta.push("移動 " + TRANSPORT[state.transport].label);
+    if (meta.length) { g.font = "800 30px " + jp; g.fillText(meta.join("　／　"), 64, y); y += 44; }
+    if (state.mission) {
+      g.font = "700 24px " + jp;
+      var m = "お題：" + state.mission;
+      if (m.length > 36) m = m.slice(0, 35) + "…";
+      g.fillText(m, 64, y);
+    }
+
+    g.font = "800 20px " + jp;
+    g.fillText("rullet-tabi.net", 64, H - 46);
+    return c;
+  }
+
+  $("saveImgBtn").addEventListener("click", function () {
+    track("share", { method: "image", destination: state.dest || "", budget: state.budget || 0 });
+    var go = function () {
+      var c = drawCard();
+      c.toBlob(function (blob) {
+        if (!blob) return;
+        var file = null;
+        try { file = new File([blob], "rullet-tabi.png", { type: "image/png" }); } catch (e) {}
+        if (file && navigator.canShare && navigator.canShare({ files: [file] })) {
+          navigator.share({ files: [file], text: shareText(), url: shareUrl() }).catch(function () {});
+          return;
+        }
+        var a = document.createElement("a");
+        a.href = URL.createObjectURL(blob);
+        a.download = "rullet-tabi.png";
+        document.body.appendChild(a); a.click(); a.remove();
+        setTimeout(function () { URL.revokeObjectURL(a.href); }, 4000);
+      }, "image/png");
+    };
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(go).catch(go);
+    else go();
+  });
+
+  /* ---------- URL からの復元 ---------- */
+  function restoreFromUrl() {
+    var q = new URLSearchParams(location.search);
+    var r = q.get("r");
+    if (!r) return;
+    var route = r.split("-").map(function (s) { return slug2pref[s]; }).filter(Boolean);
+    if (route.length < 2) return;
+    state.route = route;
+    state.start = route[route.length - 2];
+    state.dest = route[route.length - 1];
+    sel.value = state.start;
+    $("mapStart").textContent = state.start;
+
+    var b = parseInt(q.get("b"), 10);
+    if (b >= 1 && b <= 6) state.budget = b * 10000;
+    var t = q.get("t");
+    if (TRANSPORT[t]) state.transport = t;
+
+    paint();
+    drawMission(state.dest);
+    renderResult(state.dest);
+    fetchWeather(state.dest);
+    if (state.budget) {
+      $("budget").textContent = "¥" + state.budget.toLocaleString();
+      $("budgetNote").textContent = "この金額で" + state.dest + "を一日遊ぶ。";
+    }
+    if (state.transport) {
+      $("transport").textContent = TRANSPORT[state.transport].label;
+      $("transportNote").textContent = TRANSPORT[state.transport].note;
+    }
+    updateLinks();
+    $("result").hidden = false;
+    track("restore_shared", { destination: state.dest, leg: route.length - 1 });
+  }
+
+  /* ---------- モーダル ---------- */
+  var lastFocus = null;
   function openModal(pref, s) {
+    lastFocus = document.activeElement;
     $("modalPref").textContent = pref + " の観光スポット";
     $("modalName").textContent = s.name;
     $("modalBody").textContent = s.description;
@@ -369,62 +627,96 @@ const carArea = {"北海道":"hokkaido/hokkaido","青森県":"tohoku/aomori","�
     $("modalHotel").href = aff(AFF_TRAVEL, hotelUrl(pref, state.budget));
     $("modalHotelLabel").textContent = pref + "の宿を探す";
     $("modal").hidden = false;
+    $("modalClose").focus();
     track("open_spot", { destination: pref, spot: s.name });
   }
   $("modalMap").addEventListener("click", function () {
     track("open_spot_map", { destination: state.dest || "", spot: $("modalName").textContent });
   });
   $("modalHotel").addEventListener("click", function () {
-    track("affiliate_click", {
-      link_id: "hotel",
-      destination: state.dest || "",
-      budget: state.budget || 0,
-      placement: "spot_modal"
-    });
+    track("affiliate_click", affParams("spot_modal", "hotel"));
   });
-  function closeModal() { $("modal").hidden = true; }
+  function closeModal() {
+    $("modal").hidden = true;
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
   $("modalClose").addEventListener("click", closeModal);
   $("modal").addEventListener("click", function (e) { if (e.target === $("modal")) closeModal(); });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && !$("modal").hidden) closeModal();
   });
 
-  // --- stamps ---
-  try { state.stamps = JSON.parse(localStorage.getItem("rullet-tabi:stamps") || "[]"); } catch (e) { state.stamps = []; }
+  /* ---------- スタンプ帳 ---------- */
+  var STORE = "rullet-tabi:stamps";
+  try {
+    var raw = JSON.parse(localStorage.getItem(STORE) || "[]");
+    state.stamps = raw.map(function (s) {
+      // 旧フォーマット {pref, budget:"¥10,000"|"予算 未定", date} からの移行
+      if (s.to) return s;
+      var n = parseInt(String(s.budget || "").replace(/[^0-9]/g, ""), 10);
+      return { from: "", to: s.pref, budget: n || 0, transport: "", mission: "", date: s.date, leg: 1 };
+    });
+  } catch (e) { state.stamps = []; }
   renderStamps();
 
-  function addStamp(pref) {
+  function addStamp() {
     var d = new Date();
-    state.stamps = [{ pref: pref, budget: "予算 未定", date: (d.getMonth() + 1) + "/" + d.getDate() }]
-      .concat(state.stamps).slice(0, 12);
+    state.stamps = [{
+      from: state.start, to: state.dest, budget: 0, transport: "", mission: state.mission,
+      date: (d.getMonth() + 1) + "/" + d.getDate(), leg: state.route.length - 1
+    }].concat(state.stamps).slice(0, 30);
     saveStamps();
   }
-  function updateStampBudget(amount) {
+  // 直近のスタンプ（＝いま遊んでいる区間）に予算・移動手段・お題を書き戻す
+  function updateStampCurrent() {
     if (!state.stamps.length) return;
-    state.stamps[0].budget = "¥" + amount.toLocaleString();
+    var s = state.stamps[0];
+    s.budget = state.budget || 0;
+    s.transport = state.transport || "";
+    s.mission = state.mission || "";
     saveStamps();
   }
   function saveStamps() {
-    try { localStorage.setItem("rullet-tabi:stamps", JSON.stringify(state.stamps)); } catch (e) {}
+    try { localStorage.setItem(STORE, JSON.stringify(state.stamps)); } catch (e) {}
     renderStamps();
   }
   function renderStamps() {
     var wrap = $("stamps");
     wrap.innerHTML = "";
+    var seen = {}, longest = 0;
+    state.stamps.forEach(function (st) {
+      if (st.from) seen[st.from] = 1;
+      if (st.to) seen[st.to] = 1;
+      if ((st.leg || 1) > longest) longest = st.leg || 1;
+    });
+    var n = Object.keys(seen).length;
+    $("stampStats").textContent = state.stamps.length
+      ? "47都道府県中 " + n + "県（" + Math.round(n / 47 * 100) + "%）／ 最長ルート " + longest + "県"
+      : "";
+
     state.stamps.forEach(function (st) {
       var d = document.createElement("div");
       d.className = "stamp";
-      d.innerHTML = '<span class="stamp-date"></span><span class="stamp-pref"></span><span class="stamp-budget"></span>';
+      d.innerHTML = '<span class="stamp-date"></span><span class="stamp-pref"></span>' +
+        '<span class="stamp-leg"></span><span class="stamp-budget"></span>';
       d.querySelector(".stamp-date").textContent = st.date;
-      d.querySelector(".stamp-pref").textContent = st.pref;
-      d.querySelector(".stamp-budget").textContent = st.budget;
+      d.querySelector(".stamp-pref").textContent = st.to;
+      d.querySelector(".stamp-leg").textContent = st.from ? st.from + " → " + st.to : "";
+      var parts = [];
+      parts.push(st.budget ? "¥" + Number(st.budget).toLocaleString() : "予算 未定");
+      if (st.transport && TRANSPORT[st.transport]) parts.push(TRANSPORT[st.transport].label);
+      d.querySelector(".stamp-budget").textContent = parts.join(" ／ ");
       wrap.appendChild(d);
     });
     $("stampSection").hidden = state.stamps.length === 0;
   }
   $("clearStamps").addEventListener("click", function () {
     state.stamps = [];
-    try { localStorage.removeItem("rullet-tabi:stamps"); } catch (e) {}
+    try { localStorage.removeItem(STORE); } catch (e) {}
     renderStamps();
   });
+
+  state.route = [state.start];
+  // 地図の読み込み結果に関係なく、共有リンクからの復元は成立させる
+  restoreFromUrl();
 })();
