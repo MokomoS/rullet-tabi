@@ -1,0 +1,322 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<link rel="icon" href="../../favicon.png" type="image/png">
+<title>山口県の隣の県はどこ？ 隣接4県をルーレットで決める｜ルー列島旅 NEXT</title>
+<meta name="description" content="山口県に隣接するのは広島県・島根県・福岡県・大分県の4県。回すと隣の県にしか行けないルーレットで、山口からの次の行き先を決めます。山口県から一番遠いのは北海道で、12回。">
+<link rel="canonical" href="https://www.rullet-tabi.net/pref/yamaguchi/">
+<meta property="og:type" content="article">
+<meta property="og:title" content="山口県の隣は、4つ。">
+<meta property="og:description" content="山口県に隣接するのは広島県・島根県・福岡県・大分県の4県。回すと隣の県にしか行けないルーレットで、山口からの次の行き先を決めます。山口県から一番遠いのは北海道で、12回。">
+<meta property="og:image" content="https://www.rullet-tabi.net/ogp/yamaguchi.png">
+<meta property="og:url" content="https://www.rullet-tabi.net/pref/yamaguchi/">
+<meta name="twitter:card" content="summary_large_image">
+<script async src="https://www.googletagmanager.com/gtag/js?id=G-4GQEGFSQ58"></script>
+<script>
+  window.dataLayer = window.dataLayer || [];
+  function gtag(){dataLayer.push(arguments);}
+  gtag('js', new Date());
+  gtag('config', 'G-4GQEGFSQ58');
+</script>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Archivo:wght@400;600;800;900&family=Zen+Kaku+Gothic+New:wght@400;500;700;900&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../../style.css">
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"FAQPage","mainEntity":[{"@type":"Question","name":"山口県に隣接する都道府県はどこですか？","acceptedAnswer":{"@type":"Answer","text":"山口県に隣接するのは広島県、島根県、福岡県、大分県の4都道府県です。"}},{"@type":"Question","name":"山口県から一番遠い都道府県はどこですか？","acceptedAnswer":{"@type":"Answer","text":"隣の県だけをたどっていく場合、山口県から最も遠いのは北海道で、12回の移動が必要です。"}}]}</script>
+<script type="application/ld+json">{"@context":"https://schema.org","@type":"BreadcrumbList","itemListElement":[{"@type":"ListItem","position":1,"name":"ルー列島旅 NEXT","item":"https://www.rullet-tabi.net/"},{"@type":"ListItem","position":2,"name":"山口県","item":"https://www.rullet-tabi.net/pref/yamaguchi/"}]}</script>
+</head>
+<body>
+
+<header class="site-head">
+  <div class="brand">
+    <a class="brand-link" href="../../"><span class="brand-name">ルー列島旅</span><span class="brand-next">NEXT</span></a>
+  </div>
+  <div class="head-note">山口県から、隣の県へ</div>
+</header>
+
+<section class="hero">
+  <div class="hero-copy">
+    <div class="kicker accent">PREF 35 — 山口県</div>
+    <h1>山口県の隣は、<br>4つ。</h1>
+    <p class="lede">行けるのは広島県・島根県・福岡県・大分県だけ。どれになるかは回すまで分かりません。山口を出発地にして、明日の行き先を運に丸投げしましょう。</p>
+    <div class="rule"></div>
+    <button type="button" id="spinBtn" class="btn btn-primary spin-btn">
+      <span>山口県から回す</span><span class="arrow">&#8594;</span>
+    </button>
+    <div class="fineprint">※ 行き先は必ず山口県に隣接した都道府県になります。</div>
+  </div>
+
+  <div class="hero-map">
+    <div class="map-bar">
+      <span class="kicker">ADJACENT / 4</span>
+      <span class="map-start">隣の多さ 全国 <b>16</b> 位</span>
+    </div>
+    <div class="pref-stats">
+      <div class="stat">
+        <span class="kicker muted">いちばん遠い県</span>
+        <span class="stat-big">北海道</span>
+        <span class="block-note">隣の県だけをたどると <b>12回</b>。ここまで続けられますか。</span>
+      </div>
+      <div class="stat">
+        <span class="kicker muted">全国のものさし</span>
+        <span class="block-note">いちばん分岐が多いのは長野県（8県）。
+        いちばん少ないのは北海道・沖縄県（1県）。</span>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="reel" class="reel" hidden>
+  <div class="kicker rolling">ROLLING…</div>
+  <div id="reelName" class="reel-name"></div>
+</section>
+
+<section id="miniResult" class="poster" hidden>
+  <div class="poster-main">
+    <div class="kicker">次の行き先</div>
+    <div id="destName" class="dest"></div>
+    <div class="weather" id="legText"></div>
+  </div>
+  <div class="poster-actions">
+    <a id="goApp" href="../../" class="link-block">
+      <span id="goAppLabel">予算とお題を決める</span><span>&#8599;</span>
+    </a>
+    <button type="button" id="againBtn" class="link-block ghost-white">
+      <span>もう一度回す</span><span>&#8635;</span>
+    </button>
+  </div>
+</section>
+
+<section class="block">
+  <div class="block-bar">
+    <span class="kicker">山口県の隣 — 4県</span>
+    <span class="block-note">タップでその県のページへ</span>
+  </div>
+  <div class="nbr-grid">
+      <a class="nbr" href="../hiroshima/">
+        <span class="nbr-no">NEXT</span>
+        <span class="nbr-name">広島県</span>
+        <span class="nbr-note">広島からは さらに5県へ</span>
+      </a>
+      <a class="nbr" href="../shimane/">
+        <span class="nbr-no">NEXT</span>
+        <span class="nbr-name">島根県</span>
+        <span class="nbr-note">島根からは さらに3県へ</span>
+      </a>
+      <a class="nbr" href="../fukuoka/">
+        <span class="nbr-no">NEXT</span>
+        <span class="nbr-name">福岡県</span>
+        <span class="nbr-note">福岡からは さらに4県へ</span>
+      </a>
+      <a class="nbr" href="../oita/">
+        <span class="nbr-no">NEXT</span>
+        <span class="nbr-name">大分県</span>
+        <span class="nbr-note">大分からは さらに5県へ</span>
+      </a>
+  </div>
+</section>
+
+<section class="block">
+  <div class="block-bar">
+    <span class="kicker">何回まわせば、どこまで</span>
+    <span class="block-note">山口県起点</span>
+  </div>
+  <div class="reach">
+      <div class="reach-row">
+        <span class="reach-n">1<small>回</small></span>
+        <span class="reach-c">4県</span>
+        <span class="reach-prefs"><a href="../hiroshima/">広島県</a>、<a href="../shimane/">島根県</a>、<a href="../fukuoka/">福岡県</a>、<a href="../oita/">大分県</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">2<small>回</small></span>
+        <span class="reach-c">6県</span>
+        <span class="reach-prefs"><a href="../okayama/">岡山県</a>、<a href="../tottori/">鳥取県</a>、<a href="../ehime/">愛媛県</a>、<a href="../saga/">佐賀県</a>、<a href="../kumamoto/">熊本県</a>、<a href="../miyazaki/">宮崎県</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">3<small>回</small></span>
+        <span class="reach-c">6県</span>
+        <span class="reach-prefs"><a href="../hyogo/">兵庫県</a>、<a href="../kagawa/">香川県</a>、<a href="../tokushima/">徳島県</a>、<a href="../kochi/">高知県</a>、<a href="../nagasaki/">長崎県</a>、<a href="../kagoshima/">鹿児島県</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">4<small>回</small></span>
+        <span class="reach-c">4県</span>
+        <span class="reach-prefs"><a href="../kyoto/">京都府</a>、<a href="../osaka/">大阪府</a>、<a href="../wakayama/">和歌山県</a>、<a href="../okinawa/">沖縄県</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">5<small>回</small></span>
+        <span class="reach-c">4県</span>
+        <span class="reach-prefs"><a href="../shiga/">滋賀県</a>、<a href="../fukui/">福井県</a>、<a href="../nara/">奈良県</a>、<a href="../mie/">三重県</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">6<small>回</small></span>
+        <span class="reach-c">3県</span>
+        <span class="reach-prefs"><a href="../gifu/">岐阜県</a>、<a href="../ishikawa/">石川県</a>、<a href="../aichi/">愛知県</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">7<small>回</small></span>
+        <span class="reach-c">3県</span>
+        <span class="reach-prefs"><a href="../toyama/">富山県</a>、<a href="../nagano/">長野県</a>、<a href="../shizuoka/">静岡県</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">8<small>回</small></span>
+        <span class="reach-c">5県</span>
+        <span class="reach-prefs"><a href="../niigata/">新潟県</a>、<a href="../gunma/">群馬県</a>、<a href="../saitama/">埼玉県</a>、<a href="../yamanashi/">山梨県</a>、<a href="../kanagawa/">神奈川県</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">9<small>回</small></span>
+        <span class="reach-c">6県</span>
+        <span class="reach-prefs"><a href="../yamagata/">山形県</a>、<a href="../fukushima/">福島県</a>、<a href="../tochigi/">栃木県</a>、<a href="../ibaraki/">茨城県</a>、<a href="../chiba/">千葉県</a>、<a href="../tokyo/">東京都</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">10<small>回</small></span>
+        <span class="reach-c">2県</span>
+        <span class="reach-prefs"><a href="../akita/">秋田県</a>、<a href="../miyagi/">宮城県</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">11<small>回</small></span>
+        <span class="reach-c">2県</span>
+        <span class="reach-prefs"><a href="../aomori/">青森県</a>、<a href="../iwate/">岩手県</a></span>
+      </div>
+      <div class="reach-row">
+        <span class="reach-n">12<small>回</small></span>
+        <span class="reach-c">1県</span>
+        <span class="reach-prefs"><a href="../hokkaido/">北海道</a></span>
+      </div>
+  </div>
+</section>
+
+<section class="block">
+  <div class="block-bar">
+    <span class="kicker">山口県で出るスポット</span>
+    <span class="block-note">回して当たると出てきます</span>
+  </div>
+  <div class="spots">
+      <div class="spot spot-static">
+        <span class="spot-no">SPOT 01</span>
+        <span class="spot-name">角島大橋</span>
+        <span class="spot-desc spot-desc-full">エメラルドグリーンの海を貫く全長1780mの橋。まるで南国のような絶景ドライブが楽しめます。</span>
+      </div>
+      <div class="spot spot-static">
+        <span class="spot-no">SPOT 02</span>
+        <span class="spot-name">元乃隅神社</span>
+        <span class="spot-desc spot-desc-full">123基の朱色の鳥居が海に向かって連なる絶景神社。アメリカのCNNで「日本の最も美しい場所」に選ばれました。</span>
+      </div>
+      <div class="spot spot-static">
+        <span class="spot-no">SPOT 03</span>
+        <span class="spot-name">秋芳洞</span>
+        <span class="spot-desc spot-desc-full">日本最大級の鍾乳洞。洞内の「百枚皿」や巨大な黄金柱など、自然が数億年かけて作った芸術に圧倒されます。</span>
+      </div>
+  </div>
+</section>
+
+<section class="mission">
+  <div class="mission-head"><span class="kicker accent">山口県で出るお題の例</span></div>
+  <ul class="mission-list"><li>風呂に入る。銭湯でも温泉でもいい</li><li>その県の形をした何かを探す</li><li>ご当地サイダーか、ご当地牛乳を1本さがす</li></ul>
+</section>
+
+<section class="prep">
+  <div class="kicker">山口県に泊まるなら</div>
+  <div class="block-note prep-note">予算ダイスの出目に合わせて、明日チェックインで探せます。</div>
+  <div class="budget-grid">
+    <a class="link-block outline" data-cap="10000" href="#"><span>1万円で泊まる</span><span class="accent">&#8599;</span></a>
+    <a class="link-block outline" data-cap="30000" href="#"><span>3万円で泊まる</span><span class="accent">&#8599;</span></a>
+    <a class="link-block outline" data-cap="50000" href="#"><span>5万円で泊まる</span><span class="accent">&#8599;</span></a>
+  </div>
+  <div class="prep-grid">
+    <a class="link-block outline" data-move="car" href="#"><span>山口県でレンタカーを借りる</span><span class="accent">&#8599;</span></a>
+    <a class="link-block outline" data-move="bus" href="#"><span>山口県行きの高速バスを探す</span><span class="accent">&#8599;</span></a>
+  </div>
+  <div class="fineprint">楽天のアフィリエイトリンクです。別タブで開きます。</div>
+</section>
+
+<footer class="site-foot">
+  <span><a class="brand-link" href="../../">&copy; 2026 ルー列島旅 NEXT</a></span>
+  <span>rullet-tabi.net</span>
+</footer>
+
+<script>
+(function () {
+  var PREF = "山口県", SL = "yamaguchi";
+  var NBRS = ["広島県","島根県","福岡県","大分県"];
+  var NBR_SLUG = {"広島県":"hiroshima","島根県":"shimane","福岡県":"fukuoka","大分県":"oita"};
+  var CAR = "chu-shikoku/yamaguchi", BUS = "yamaguchi";
+  var $ = function (id) { return document.getElementById(id); };
+  function track(n, p) { try { if (typeof gtag === 'function') gtag('event', n, p || {}); } catch (e) {} }
+
+  /* --- アフィリエイトリンク（日付は開いた日の翌日にする） --- */
+  var AFF_TRAVEL = '52e959bc.15d9121a.52e959bd.aefd9435';
+  var AFF_CARS = '52ec94e4.d986eaaa.52ec6059.b7cf170b';
+  var AFF_UT = 'eyJwYWdlIjoidXJsIiwidHlwZSI6InRleHQiLCJjb2wiOjF9';
+  function aff(ids, url) {
+    return 'https://hb.afl.rakuten.co.jp/hgc/' + ids + '/?pc=' + encodeURIComponent(url) +
+      '&link_type=text&ut=' + AFF_UT;
+  }
+  function pad(n) { return (n < 10 ? '0' : '') + n; }
+  function addDays(b, n) { var d = new Date(b.getTime()); d.setDate(d.getDate() + n); return d; }
+  var now = new Date(), i1 = addDays(now, 1), o1 = addDays(now, 2);
+  var DATES = 'f_nen1=' + i1.getFullYear() + '&f_tuki1=' + pad(i1.getMonth() + 1) + '&f_hi1=' + pad(i1.getDate()) +
+    '&f_nen2=' + o1.getFullYear() + '&f_tuki2=' + pad(o1.getMonth() + 1) + '&f_hi2=' + pad(o1.getDate()) +
+    '&f_heya_su=1&f_otona_su=2';
+
+  document.querySelectorAll('[data-cap]').forEach(function (a) {
+    var cap = a.getAttribute('data-cap');
+    a.href = aff(AFF_TRAVEL, 'https://search.travel.rakuten.co.jp/ds/yado/' + SL + '?' + DATES + '&f_kin=' + cap);
+    a.target = '_blank'; a.rel = 'noopener sponsored';
+    a.addEventListener('click', function () {
+      track('affiliate_click', { link_id: 'hotel', destination: PREF, budget: Number(cap), placement: 'pref_page' });
+    });
+  });
+  document.querySelectorAll('[data-move]').forEach(function (a) {
+    var kind = a.getAttribute('data-move');
+    if (kind === 'car') a.href = aff(AFF_CARS, CAR ? 'https://cars.travel.rakuten.co.jp/cars/area/' + CAR + '/' : 'https://travel.rakuten.co.jp/cars/');
+    else a.href = aff(AFF_TRAVEL, BUS ? 'https://travel.rakuten.co.jp/bus/pref/' + BUS + '.html' : 'https://travel.rakuten.co.jp/bus/');
+    a.target = '_blank'; a.rel = 'noopener sponsored';
+    a.addEventListener('click', function () {
+      track('affiliate_click', { link_id: kind, destination: PREF, budget: 0, placement: 'pref_page' });
+    });
+  });
+
+  /* --- ミニルーレット --- */
+  var spinning = false;
+  function spin() {
+    if (spinning || !NBRS.length) return;
+    spinning = true;
+    var final = NBRS[Math.floor(Math.random() * NBRS.length)];
+    var total = 1800, t = 0, i = 0;
+    $('miniResult').hidden = true;
+    $('reel').hidden = false;
+    (function tick() {
+      i++;
+      $('reelName').textContent = NBRS[i % NBRS.length];
+      if (t >= total) { land(final); return; }
+      var gap = 55 + 300 * Math.pow(t / total, 3.2);
+      t += gap;
+      setTimeout(tick, gap);
+    })();
+  }
+  function land(dest) {
+    spinning = false;
+    $('reelName').textContent = dest;
+    setTimeout(function () { $('reel').hidden = true; }, 320);
+    $('destName').textContent = dest;
+    $('legText').textContent = PREF + ' → ' + dest;
+    $('goApp').href = '../../?r=' + SL + '-' + NBR_SLUG[dest];
+    $('goAppLabel').textContent = dest + 'の予算とお題を決める';
+    $('miniResult').hidden = false;
+    track('pref_spin', { start: PREF, destination: dest });
+    setTimeout(function () {
+      var el = $('miniResult');
+      window.scrollTo({ top: Math.max(0, window.scrollY + el.getBoundingClientRect().top), behavior: 'smooth' });
+    }, 360);
+  }
+  $('spinBtn').addEventListener('click', spin);
+  $('againBtn').addEventListener('click', spin);
+  $('goApp').addEventListener('click', function () {
+    track('pref_to_app', { start: PREF, destination: $('destName').textContent });
+  });
+})();
+</script>
+</body>
+</html>
