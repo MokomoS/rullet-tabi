@@ -181,6 +181,7 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
     state.spinning = true; state.dest = null; state.budget = null;
     $("result").hidden = true;
     $("reel").hidden = false;
+    revealReel();
     (function tick() {
       i++;
       var name = cands[i % cands.length];
@@ -193,6 +194,16 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
     })();
   });
 
+  // 回している間は「地図 + ROLLING の帯」が同時に見える位置へ寄せる
+  function revealReel() {
+    requestAnimationFrame(function () {
+      var r = $("reel").getBoundingClientRect();
+      if (r.bottom <= window.innerHeight && r.top >= 0) return;
+      var target = window.scrollY + r.bottom - window.innerHeight + 16;
+      window.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
+    });
+  }
+
   function land(dest) {
     state.spinning = false; state.dest = dest;
     $("reelName").textContent = dest;
@@ -202,10 +213,11 @@ Object.keys(raw).forEach(k => { spots[k] = raw[k].map(([name, description]) => (
     fetchWeather(dest);
     addStamp(dest);
     $("result").hidden = false;
+    // riseUp アニメーション（0.5s）の transform が消えてから位置を測る
     setTimeout(function () {
-      var el = $("result");
-      window.scrollTo({ top: window.scrollY + el.getBoundingClientRect().top - 8, behavior: "smooth" });
-    }, 60);
+      var top = window.scrollY + $("result").getBoundingClientRect().top;
+      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
+    }, 560);
   }
 
   function renderResult(dest) {
