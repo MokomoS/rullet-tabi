@@ -68,7 +68,7 @@
   </div>
 </section>
 
-<section id="reel" class="reel" hidden>
+<section id="reel" class="reel" aria-hidden="true" hidden>
   <div class="kicker rolling">ROLLING…</div>
   <div id="reelName" class="reel-name"></div>
 </section>
@@ -239,6 +239,8 @@
   var CAR = "kitakanto/gunma", BUS = "gunma";
   var $ = function (id) { return document.getElementById(id); };
   function track(n, p) { try { if (typeof gtag === 'function') gtag('event', n, p || {}); } catch (e) {} }
+  var reduceMotion = false;
+  try { reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
   /* --- アフィリエイトリンク（日付は開いた日の翌日にする） --- */
   var AFF_TRAVEL = '52e959bc.15d9121a.52e959bd.aefd9435';
@@ -279,7 +281,7 @@
     if (spinning || !NBRS.length) return;
     spinning = true;
     var final = NBRS[Math.floor(Math.random() * NBRS.length)];
-    var total = 1800, t = 0, i = 0;
+    var total = reduceMotion ? 150 : 1800, t = 0, i = 0;
     $('miniResult').hidden = true;
     $('reel').hidden = false;
     (function tick() {
@@ -303,8 +305,9 @@
     track('pref_spin', { start: PREF, destination: dest });
     setTimeout(function () {
       var el = $('miniResult');
-      window.scrollTo({ top: Math.max(0, window.scrollY + el.getBoundingClientRect().top), behavior: 'smooth' });
-    }, 360);
+      window.scrollTo({ top: Math.max(0, window.scrollY + el.getBoundingClientRect().top),
+        behavior: reduceMotion ? 'auto' : 'smooth' });
+    }, reduceMotion ? 0 : 360);
   }
   $('spinBtn').addEventListener('click', spin);
   $('againBtn').addEventListener('click', spin);

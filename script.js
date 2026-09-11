@@ -10,6 +10,17 @@ function bootApp() {
   Object.keys(idMap).forEach(function (p) { id2pref[idMap[p]] = p; });
   Object.keys(slug).forEach(function (p) { slug2pref[slug[p]] = p; });
 
+  // OSの「視差効果を減らす」設定を尊重する
+  var reduceMotion = false;
+  try { reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches; } catch (e) {}
+  function scrollTo(top) {
+    window.scrollTo({ top: Math.max(0, top), behavior: reduceMotion ? "auto" : "smooth" });
+  }
+  function say(msg) {
+    var el = $("liveStatus");
+    if (el) el.textContent = msg;
+  }
+
   /* ---------- 計測（GA4） ---------- */
   function track(name, params) {
     try { if (typeof gtag === "function") gtag("event", name, params || {}); } catch (e) {}
@@ -144,6 +155,9 @@ function bootApp() {
   fetch("japan-map.svg").then(function (r) { if (!r.ok) throw 0; return r.text(); }).then(function (txt) {
     var host = $("mapContainer");
     host.innerHTML = txt;
+    // 離島などで1つの県が複数のパスに分かれていることがある。
+    // キーボードのタブ位置が県の数より増えないよう、県ごとに最初の1つだけを対象にする。
+    var focusable = {};
     host.querySelectorAll("path, circle").forEach(function (el) {
       el.style.stroke = "#201e1d";
       el.style.strokeWidth = "0.6";
@@ -151,7 +165,25 @@ function bootApp() {
       el.style.transition = "fill .18s linear";
       var pref = id2pref[el.id];
       if (!pref) return;
+      if (focusable[pref]) {
+        el.setAttribute("aria-hidden", "true");
+      } else {
+        focusable[pref] = true;
+        el.setAttribute("tabindex", "0");
+        el.setAttribute("role", "button");
+        el.setAttribute("aria-label", pref + "から出発する");
+      }
       el.addEventListener("click", function () { setStart(pref, "map"); });
+      el.addEventListener("keydown", function (e) {
+        if (e.key === "Enter" || e.key === " " || e.key === "Spacebar") {
+          e.preventDefault();
+          setStart(pref, "keyboard");
+        }
+      });
+      el.addEventListener("focus", function () {
+        if (pref !== state.start && pref !== state.dest) el.style.fill = "#ffc4b8";
+      });
+      el.addEventListener("blur", function () { paint(); });
       el.addEventListener("mouseenter", function () {
         if (pref !== state.start && pref !== state.dest) el.style.fill = "#ffc4b8";
       });
@@ -168,7 +200,7 @@ function bootApp() {
       var fill = "#eae7e7";
       if (pref) {
         if (pref === state.start) fill = "#201e1d";
-        else if (pref === (flash || state.dest)) fill = "#ec3013";
+        else if (pref === (flash || state.dest)) fill = "#dd2b0f";
         else if (state.spinning && cands.indexOf(pref) >= 0) fill = "#ffc4b8";
         else if (visited.indexOf(pref) >= 0) fill = "#ffc4b8";
       }
@@ -205,7 +237,7 @@ function bootApp() {
     if (state.spinning) return;
     var cands = candidatesFor(state.start);
     var final = pick(cands);
-    var total = 2400, t = 0, i = 0;
+    var total = reduceMotion ? 150 : 2400, t = 0, i = 0;
     state.spinning = true; state.dest = null; state.budget = null;
     state.transport = null; state.mission = null;
     if (!state.route.length) state.route = [state.start];
@@ -233,8 +265,7 @@ function bootApp() {
     requestAnimationFrame(function () {
       var r = $("reel").getBoundingClientRect();
       if (r.bottom <= window.innerHeight && r.top >= 0) return;
-      var target = window.scrollY + r.bottom - window.innerHeight + 16;
-      window.scrollTo({ top: Math.max(0, target), behavior: "smooth" });
+      scrollTo(window.scrollY + r.bottom - window.innerHeight + 16);
     });
   }
 
@@ -253,10 +284,10 @@ function bootApp() {
     track("spin_roulette", {
       start: state.start, destination: dest, leg: state.route.length - 1
     });
+    say("次の行き先は" + dest + "になりました。");
     setTimeout(function () {
-      var top = window.scrollY + $("result").getBoundingClientRect().top;
-      window.scrollTo({ top: Math.max(0, top), behavior: "smooth" });
-    }, 560);
+      scrollTo(window.scrollY + $("result").getBoundingClientRect().top);
+    }, reduceMotion ? 0 : 560);
   }
 
   /* ---------- 連鎖（旅を続ける） ---------- */
@@ -326,16 +357,28 @@ function bootApp() {
   }
 
   function fetchWeather(pref) {
-    var city = cityMap[pref] || "Tokyo";
-    var key = "0db7274b7abf5a6db8875b8185916e7d";
-    $("weather").textContent = "明日の天気を確認中…";
-    fetch("https://api.openweathermap.org/data/2.5/forecast?q=" + city + ",JP&appid=" + key + "&units=metric&lang=ja")
+    var el = $("weather");
+    var g = geo[pref];
+    if (!g) { el.textContent = ""; return; }
+    el.textContent = "明日の天気を確認中…";
+    // Open-Meteo はAPIキー不要。timezone を指定すると daily[1] がちょうど「明日」になる。
+    var u = "https://api.open-meteo.com/v1/forecast?latitude=" + g[0] + "&longitude=" + g[1] +
+      "&daily=weather_code,temperature_2m_max,temperature_2m_min,precipitation_probability_max" +
+      "&timezone=Asia%2FTokyo&forecast_days=2";
+    fetch(u)
       .then(function (r) { if (!r.ok) throw 0; return r.json(); })
       .then(function (d) {
-        var f = d.list[8] || d.list[0];
-        $("weather").textContent = "明日の" + pref + "は " + f.weather[0].description + " / " + Math.round(f.main.temp) + "℃";
+        var dd = d && d.daily;
+        if (!dd || !dd.time || dd.time.length < 2) throw 0;
+        var i = 1; // 0 = 今日、1 = 明日
+        var t = "明日の" + pref + "は " + (WMO[dd.weather_code[i]] || "―") +
+                " ／ " + Math.round(dd.temperature_2m_max[i]) + "℃ / " +
+                Math.round(dd.temperature_2m_min[i]) + "℃";
+        var pop = dd.precipitation_probability_max[i];
+        if (pop !== null && pop !== undefined) t += " ／ 降水 " + pop + "%";
+        el.textContent = t;
       })
-      .catch(function () { $("weather").textContent = "明日の天気はいま取得できません"; });
+      .catch(function () { el.textContent = "明日の天気はいま取得できません"; });
   }
 
   /* ---------- ダイス（予算＋移動手段） ---------- */
@@ -346,7 +389,9 @@ function bootApp() {
     var v = Math.floor(Math.random() * 6) + 1;
     var base = faceRot[v];
     state.turns++;
-    $("dice").style.transform = "rotateX(" + (720 * state.turns + base[0]) + "deg) rotateY(" + (1080 * state.turns + base[1]) + "deg)";
+    $("dice").style.transform = reduceMotion
+      ? "rotateX(" + base[0] + "deg) rotateY(" + base[1] + "deg)"
+      : "rotateX(" + (720 * state.turns + base[0]) + "deg) rotateY(" + (1080 * state.turns + base[1]) + "deg)";
     setTimeout(function () {
       state.rolling = false;
       state.budget = v * 10000;
@@ -363,7 +408,8 @@ function bootApp() {
       track("roll_dice", {
         destination: state.dest, face: v, budget: state.budget, transport: state.transport
       });
-    }, 1650);
+      say("予算は" + state.budget.toLocaleString() + "円、移動手段は" + t.label + "です。");
+    }, reduceMotion ? 0 : 1650);
   });
 
   /* ---------- シェア ---------- */
@@ -400,7 +446,7 @@ function bootApp() {
     var g = c.getContext("2d");
     var jp = '"Zen Kaku Gothic New", "Hiragino Sans", "Noto Sans JP", sans-serif';
 
-    g.fillStyle = "#ec3013"; g.fillRect(0, 0, W, H);
+    g.fillStyle = "#dd2b0f"; g.fillRect(0, 0, W, H);
     g.fillStyle = "#201e1d"; g.fillRect(0, H - 14, W, 14);
 
     g.fillStyle = "#fff";
@@ -522,6 +568,15 @@ function bootApp() {
     if (lastFocus && lastFocus.focus) lastFocus.focus();
   }
   $("modalClose").addEventListener("click", closeModal);
+  // モーダルを開いている間、Tab が背後の要素へ抜けないようにする
+  $("modal").addEventListener("keydown", function (e) {
+    if (e.key !== "Tab") return;
+    var f = $("modal").querySelectorAll("a[href], button:not([disabled])");
+    if (!f.length) return;
+    var first = f[0], last = f[f.length - 1];
+    if (e.shiftKey && document.activeElement === first) { e.preventDefault(); last.focus(); }
+    else if (!e.shiftKey && document.activeElement === last) { e.preventDefault(); first.focus(); }
+  });
   $("modal").addEventListener("click", function (e) { if (e.target === $("modal")) closeModal(); });
   document.addEventListener("keydown", function (e) {
     if (e.key === "Escape" && !$("modal").hidden) closeModal();
@@ -609,9 +664,10 @@ function bootApp() {
    ブラウザ内で発生しうる。古いindex.htmlは data.js を読み込まないので、
    その場合はここで自力で読み込んでから起動する。 */
 (function () {
-  if (typeof prefectures !== "undefined" && typeof idMap !== "undefined") { bootApp(); return; }
+  if (typeof prefectures !== "undefined" && typeof idMap !== "undefined" &&
+      typeof geo !== "undefined") { bootApp(); return; }
   var s = document.createElement("script");
-  s.src = "data.js";
+  s.src = "data.js?v=5";
   s.onload = function () {
     try { bootApp(); } catch (e) { failed(); }
   };

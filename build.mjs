@@ -13,7 +13,7 @@ const OUT_OGP = path.join(ROOT, 'ogp');
 /* ---------- data.js を読み込む ---------- */
 const src = fs.readFileSync(path.join(ROOT, 'data.js'), 'utf8');
 const D = new Function(src + `
-  return { prefectures, adjacent, cityMap, slug, spots, carArea, busSlug, MISSIONS };`)();
+  return { prefectures, adjacent, slug, spots, carArea, busSlug, MISSIONS };`)();
 const { prefectures, adjacent, slug, spots, carArea, busSlug, MISSIONS } = D;
 
 /* ---------- 隣接グラフの計算 ---------- */
@@ -174,7 +174,7 @@ function prefPage(info) {
   </div>
 </section>
 
-<section id="reel" class="reel" hidden>
+<section id="reel" class="reel" aria-hidden="true" hidden>
   <div class="kicker rolling">ROLLING…</div>
   <div id="reelName" class="reel-name"></div>
 </section>
@@ -258,6 +258,8 @@ function prefPage(info) {
   var CAR = ${JSON.stringify(carArea[pref] || '')}, BUS = ${JSON.stringify(busSlug[pref] || '')};
   var $ = function (id) { return document.getElementById(id); };
   function track(n, p) { try { if (typeof gtag === 'function') gtag('event', n, p || {}); } catch (e) {} }
+  var reduceMotion = false;
+  try { reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches; } catch (e) {}
 
   /* --- アフィリエイトリンク（日付は開いた日の翌日にする） --- */
   var AFF_TRAVEL = '52e959bc.15d9121a.52e959bd.aefd9435';
@@ -298,7 +300,7 @@ function prefPage(info) {
     if (spinning || !NBRS.length) return;
     spinning = true;
     var final = NBRS[Math.floor(Math.random() * NBRS.length)];
-    var total = 1800, t = 0, i = 0;
+    var total = reduceMotion ? 150 : 1800, t = 0, i = 0;
     $('miniResult').hidden = true;
     $('reel').hidden = false;
     (function tick() {
@@ -322,8 +324,9 @@ function prefPage(info) {
     track('pref_spin', { start: PREF, destination: dest });
     setTimeout(function () {
       var el = $('miniResult');
-      window.scrollTo({ top: Math.max(0, window.scrollY + el.getBoundingClientRect().top), behavior: 'smooth' });
-    }, 360);
+      window.scrollTo({ top: Math.max(0, window.scrollY + el.getBoundingClientRect().top),
+        behavior: reduceMotion ? 'auto' : 'smooth' });
+    }, reduceMotion ? 0 : 360);
   }
   $('spinBtn').addEventListener('click', spin);
   $('againBtn').addEventListener('click', spin);
@@ -342,7 +345,7 @@ function ogpHtml(info) {
   const { pref, nbrs, maxHop, farthest } = info;
   return `<!DOCTYPE html><html><head><meta charset="utf-8"><style>
   *{margin:0;padding:0;box-sizing:border-box}
-  body{width:1200px;height:630px;background:#ec3013;color:#fff;
+  body{width:1200px;height:630px;background:#dd2b0f;color:#fff;
     font-family:"Noto Sans CJK JP","Noto Sans JP",sans-serif;
     padding:64px 60px;position:relative;overflow:hidden}
   .brand{font-size:24px;font-weight:900;letter-spacing:.06em}
