@@ -1,5 +1,5 @@
 /* ================= app ================= */
-(function () {
+function bootApp() {
   var $ = function (id) { return document.getElementById(id); };
   var state = {
     start: "東京都", dest: null, budget: null, transport: null, mission: null,
@@ -575,4 +575,25 @@
   state.route = [state.start];
   // 地図の読み込み結果に関係なく、共有リンクからの復元は成立させる
   restoreFromUrl();
+}
+
+/* ---------- 起動 ----------
+   GitHub Pages は HTML も JS も Cache-Control: max-age=600 で配信するため、
+   デプロイ直後の最大10分間は「古いindex.html + 新しいscript.js」の組み合わせが
+   ブラウザ内で発生しうる。古いindex.htmlは data.js を読み込まないので、
+   その場合はここで自力で読み込んでから起動する。 */
+(function () {
+  if (typeof prefectures !== "undefined" && typeof idMap !== "undefined") { bootApp(); return; }
+  var s = document.createElement("script");
+  s.src = "data.js";
+  s.onload = function () {
+    try { bootApp(); } catch (e) { failed(); }
+  };
+  s.onerror = failed;
+  document.head.appendChild(s);
+
+  function failed() {
+    var m = document.getElementById("mapContainer");
+    if (m) m.textContent = "読み込みに失敗しました。ページを再読み込みしてください。";
+  }
 })();
